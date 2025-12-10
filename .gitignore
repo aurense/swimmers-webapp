@@ -1,1 +1,18 @@
-.venv
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.Python
+env/
+venv/
+
+# IDEs
+.idea/
+.vscode/
+.idx/
+
+# Other
+*.sqlite3
+swimmers.db
