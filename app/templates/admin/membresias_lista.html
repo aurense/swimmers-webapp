@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Catálogo de Membresías</h1>
+    <a href="{{ url_for('admin.nueva_membresia') }}" class="btn btn-primary">
+        + Nuevo Plan
+    </a>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body p-0">
+        <div class="overflow-x-auto">
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th class="p-4">Nombre del Plan</th>
+                        <th class="text-center">Clases/Semana</th>
+                        <th class="text-right p-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in membresias %}
+                    <tr>
+                        <td class="p-4"><strong>{{ m.nombre }}</strong></td>
+                        <td class="text-center">
+                            <span class="badge badge-lg badge-neutral">{{ m.clases_por_semana }}</span>
+                        </td>
+                        <td class="text-right p-4">
+                            <a href="{{ url_for('admin.editar_membresia', id=m.id) }}" 
+                               class="btn btn-sm btn-outline btn-primary">
+                               Editar ✏️
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-6">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost">← Volver al Panel</a>
+</div>
+{% endblock %}

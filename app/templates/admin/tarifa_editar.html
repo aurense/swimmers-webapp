@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">
+                Editar Tarifa: <strong>{{ tarifa.membresia.nombre }} ({{ tarifa.nivel }})</strong>
+            </h2>
+            
+            <form method="POST" class="space-y-4">
+                {{ form.hidden_tag() }}
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.costo_mensual.label.text }}</span>
+                    </label>
+                    <label class="input-group">
+                        <span>$</span>
+                        {{ form.costo_mensual(class="input input-bordered w-full") }}
+                    </label>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.costo_anualidad.label.text }}</span>
+                    </label>
+                    <label class="input-group">
+                        <span>$</span>
+                        {{ form.costo_anualidad(class="input input-bordered w-full") }}
+                    </label>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.costo_inscripcion.label.text }}</span>
+                    </label>
+                    <label class="input-group">
+                        <span>$</span>
+                        {{ form.costo_inscripcion(class="input input-bordered w-full") }}
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end pt-4">
+                    <a href="{{ url_for('admin.tarifas') }}" class="btn btn-ghost">Cancelar</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

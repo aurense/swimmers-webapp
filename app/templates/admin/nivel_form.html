@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title mb-4">{{ titulo }}</h2>
+
+            <form method="POST" class="space-y-4">
+                {{ form.hidden_tag() }}
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.nombre.label.text }}</span>
+                    </label>
+                    {{ form.nombre(class="input input-bordered w-full") }}
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.orden.label.text }}</span>
+                    </label>
+                    {{ form.orden(class="input input-bordered w-full") }}
+                    <label class="label">
+                        <span class="label-text-alt">Número para ordenar las listas (1 aparece primero).</span>
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end pt-4">
+                    <a href="{{ url_for('admin.niveles') }}" class="btn btn-ghost">Cancelar</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

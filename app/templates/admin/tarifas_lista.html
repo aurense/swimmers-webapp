@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex justify-between items-center mb-4">
+    <h2 class="text-2xl font-bold">Matriz de Precios</h2>
+    <a href="{{ url_for('admin.nueva_tarifa') }}" class="btn btn-primary">
+        + Nueva Tarifa
+    </a>
+</div>
+<div class="overflow-x-auto">
+    <table class="table table-zebra w-full">
+        <thead>
+            <tr>
+                <th>Membresía</th>
+                <th>Nivel</th>
+                <th>Mensualidad</th>
+                <th>Anualidad</th>
+                <th>Inscripción</th>
+                <th>Editar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tarifas %}
+            <tr>
+                <td>{{ t.membresia.nombre }}</td>
+                <td>{{ t.nivel }}</td>
+                <td>${{ t.costo_mensual }}</td>
+                <td>${{ t.costo_anualidad }}</td>
+                <td>${{ t.costo_inscripcion }}</td>
+                <td>
+                    <a href="{{ url_for('admin.editar_tarifa', id=t.id) }}" class="btn btn-sm btn-outline btn-primary">✏️</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="mt-4">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost">Volver al Panel</a>
+</div>
+{% endblock %}

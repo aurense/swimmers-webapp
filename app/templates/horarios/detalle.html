@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h1 class="text-2xl font-bold">Listado de Clase</h1>
+        <div class="text-base-content/70">
+            <span>{{ horario.dia_semana }} | {{ horario.hora_inicio.strftime('%H:%M') }} - {{ horario.hora_fin.strftime('%H:%M') }}</span>
+        </div>
+        <div class="mt-2 space-x-2">
+            <div class="badge badge-primary">{{ horario.nivel }}</div>
+            <div class="badge badge-secondary">{{ alumnos|length }} / {{ horario.capacidad_maxima }} Alumnos</div>
+        </div>
+    </div>
+    <a href="{{ url_for('horarios.calendario') }}" class="btn btn-ghost">⬅ Volver al Calendario</a>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body p-0">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Folio</th>
+                        <th>Alumno</th>
+                        <th>Plan</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insc in alumnos %}
+                    <tr>
+                        <td><span class="font-bold text-base-content/60">{{ insc.socio.folio }}</span></td>
+                        <td>
+                            <div class="flex items-center space-x-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-neutral-focus text-neutral-content rounded-full w-10">
+                                      <span>{{ insc.socio.nombre_completo[:2].upper() }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="font-bold">{{ insc.socio.nombre_completo }}</div>
+                                    <div class="text-sm opacity-50">{{ insc.socio.telefono or 'Sin teléfono' }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="badge badge-info">{{ insc.socio.membresia.nombre }}</div>
+                        </td>
+                        <td class="text-right">
+                            <a href="{{ url_for('socios.perfil', id=insc.socio.id) }}" 
+                               class="btn btn-sm btn-outline btn-primary" title="Ver Perfil Completo">
+                                👤 Perfil
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4">
+                             <div class="text-center py-12 text-base-content/50">
+                                <h2 class="text-xl font-bold">📭 Clase Vacía</h2>
+                                <p>Aún no hay alumnos inscritos en este horario.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

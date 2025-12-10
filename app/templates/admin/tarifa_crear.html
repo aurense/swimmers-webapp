@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl">➕ Registrar Nueva Tarifa</h2>
+            
+            <form method="POST" class="space-y-4">
+                {{ form.hidden_tag() }}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">{{ form.membresia_id.label.text }}</span>
+                        </label>
+                        {{ form.membresia_id(class="select select-bordered") }}
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">{{ form.nivel.label.text }}</span>
+                        </label>
+                        {{ form.nivel(class="select select-bordered") }}
+                    </div>
+                </div>
+
+                <div class="divider">Costos</div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.costo_mensual.label.text }}</span>
+                    </label>
+                    <label class="input-group">
+                        <span>$</span>
+                        {{ form.costo_mensual(class="input input-bordered w-full") }}
+                    </label>
+                </div>
+                
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.costo_anualidad.label.text }}</span>
+                    </label>
+                    <label class="input-group">
+                        <span>$</span>
+                        {{ form.costo_anualidad(class="input input-bordered w-full") }}
+                    </label>
+                </div>
+                
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.costo_inscripcion.label.text }}</span>
+                    </label>
+                    <label class="input-group">
+                        <span>$</span>
+                        {{ form.costo_inscripcion(class="input input-bordered w-full") }}
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end pt-4">
+                     <a href="{{ url_for('admin.tarifas') }}" class="btn btn-ghost">Cancelar</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

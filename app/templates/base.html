@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="winter">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swimmers Atlacomulco</title>
+    
+    <!-- Tailwind + DaisyUI CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Configuración del Tema -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {},
+            },
+            daisyui: {
+                themes: ["winter", "corporate"],
+            },
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-base-200">
+    <!-- BARRA DE NAVEGACIÓN RESPONSIVA DAISYUI -->
+<div class="navbar bg-base-100 shadow-md sticky top-0 z-50">
+  
+    <!-- SECCIÓN IZQUIERDA: MENÚ MÓVIL + LOGO -->
+    <div class="navbar-start">
+      
+      <!-- Botón Hamburguesa (Solo visible en Móvil 'lg:hidden') -->
+      <div class="dropdown">
+        <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m4 6h16" />
+          </svg>
+        </div>
+        
+        <!-- Contenido del Menú Móvil -->
+        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+          {% if current_user.is_authenticated %}
+              <!-- Enlaces comunes -->
+              <li><a href="{{ url_for('asistencia.hoy') }}">📋 Asistencia</a></li>
+              
+              <!-- Enlaces Admin/Recepción -->
+              {% if current_user.role in ['admin', 'recepcion'] %}
+                  <li><a href="{{ url_for('reportes.dashboard') }}">📊 Dashboard</a></li>
+                  <li><a href="{{ url_for('socios.lista') }}">👥 Socios</a></li>
+                  <li><a href="{{ url_for('horarios.calendario') }}">📅 Calendario</a></li>
+              {% endif %}
+  
+              <!-- Submenú Admin (Móvil) -->
+              {% if current_user.role == 'admin' %}
+                  <li>
+                      <a>⚙️ Configuración</a>
+                      <ul class="p-2">
+                          <li><a href="{{ url_for('admin.horarios') }}">Horarios</a></li>
+                          <li><a href="{{ url_for('admin.tarifas') }}">Tarifas</a></li>
+                          <li><a href="{{ url_for('admin.membresias') }}">Membresías</a></li>
+                          <li><a href="{{ url_for('admin.niveles') }}">Niveles</a></li>
+                      </ul>
+                  </li>
+              {% endif %}
+          {% else %}
+              <li><a href="{{ url_for('auth.login') }}">Ingresar</a></li>
+          {% endif %}
+        </ul>
+      </div>
+      
+      <!-- Logo / Nombre de la Escuela -->
+      <a class="btn btn-ghost text-xl text-primary font-bold">
+          🏊 Swimmers
+      </a>
+    </div>
+  
+    <!-- SECCIÓN CENTRAL: MENÚ ESCRITORIO (Oculto en móvil 'hidden lg:flex') -->
+    <div class="navbar-center hidden lg:flex">
+      <ul class="menu menu-horizontal px-1">
+        {% if current_user.is_authenticated %}
+          
+          <!-- Enlace para Instructores (Siempre visible) -->
+          <li>
+              <a href="{{ url_for('asistencia.hoy') }}" class="font-semibold">
+                  📋 Asistencia
+              </a>
+          </li>
+  
+          <!-- Enlaces Administrativos -->
+          {% if current_user.role in ['admin', 'recepcion'] %}
+              <li><a href="{{ url_for('reportes.dashboard') }}">📊 Dashboard</a></li>
+              <li><a href="{{ url_for('socios.lista') }}">👥 Socios</a></li>
+              <li><a href="{{ url_for('horarios.calendario') }}">📅 Calendario</a></li>
+          {% endif %}
+  
+          <!-- Menú Desplegable Admin (Escritorio) -->
+          {% if current_user.role == 'admin' %}
+              <li>
+                  <details>
+                      <summary>⚙️ Configuración</summary>
+                      <ul class="p-2 z-20 bg-base-100 w-48 shadow-lg">
+                          <li><a href="{{ url_for('admin.horarios') }}">📅 Gestionar Horarios</a></li>
+                          <li><a href="{{ url_for('admin.tarifas') }}">💲 Gestionar Tarifas</a></li>
+                          <li><a href="{{ url_for('admin.membresias') }}">💳 Membresías</a></li>
+                          <li><a href="{{ url_for('admin.niveles') }}">📊 Niveles</a></li>
+                      </ul>
+                  </details>
+              </li>
+          {% endif %}
+  
+        {% endif %}
+      </ul>
+    </div>
+  
+    <!-- SECCIÓN DERECHA: PERFIL DE USUARIO -->
+    <div class="navbar-end">
+      {% if current_user.is_authenticated %}
+          <!-- Menú de Usuario (Avatar) -->
+          <div class="dropdown dropdown-end">
+              <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                  <div class="w-10 rounded-full bg-primary text-white flex items-center justify-center">
+                      <!-- Inicial del usuario -->
+                      <span class="text-xl font-bold">{{ current_user.username[:1].upper() }}</span>
+                  </div>
+              </div>
+              <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+                  <li class="menu-title px-4 py-2 text-xs text-gray-500">
+                      {{ current_user.username }} ({{ current_user.role }})
+                  </li>
+                  <li><a class="justify-between">Mi Perfil</a></li>
+                  <li><a href="{{ url_for('auth.logout') }}" class="text-error">Cerrar Sesión</a></li>
+              </ul>
+          </div>
+      {% else %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm">Iniciar Sesión</a>
+      {% endif %}
+    </div>
+  
+  </div>
+
+    <main class="container mx-auto p-4">
+        <!-- Bloque de Mensajes Flash (Alertas) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% set alert_class = category if category in ['success', 'warning', 'error', 'info'] else 'info' %}
+                    <div role="alert" class="alert alert-{{ alert_class }} mb-4 shadow-md">
+                        {% if alert_class == 'success' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        {% elif alert_class == 'error' %}
+                             <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        {% elif alert_class == 'warning' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        {% elif alert_class == 'info' %}
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        {% endif %}
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Aquí se inyecta el contenido de cada página -->
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

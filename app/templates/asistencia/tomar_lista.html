@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-4">
+    <div>
+        <h1 class="text-xl font-bold">Clase: {{ horario.hora_inicio.strftime('%H:%M') }}</h1>
+        <span class="badge badge-ghost">{{ horario.nivel }}</span>
+    </div>
+    <a href="{{ url_for('asistencia.hoy') }}" class="btn btn-ghost btn-sm">← Volver</a>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body p-0">
+        <div class="divide-y divide-base-200">
+            {% for item in inscripciones %}
+                {% set socio = item.socio %}
+                {% set ya_vino = socio.id in presentes %}
+                
+                <div class="flex items-center justify-between p-4">
+                    <div class="flex items-center gap-4">
+                        <div class="avatar placeholder">
+                            <div class="bg-neutral-focus text-neutral-content rounded-full w-12">
+                                <span>{{ socio.nombre_completo[:2].upper() }}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-bold">{{ socio.nombre_completo }}</div>
+                            <div class="text-sm opacity-50">{{ socio.folio }}</div>
+                        </div>
+                    </div>
+
+                    <!-- BOTÓN ONE-TAP -->
+                    <button 
+                        onclick="marcar(this, {{ socio.id }}, {{ horario.id }})"
+                        class="btn w-28 {% if ya_vino %}btn-success{% else %}btn-outline{% endif %}"
+                        {% if ya_vino %}disabled{% endif %}>
+                        
+                        {% if ya_vino %}
+                            ✅ Listo
+                        {% else %}
+                            Presente
+                        {% endif %}
+                    </button>
+                </div>
+            {% else %}
+                <div class="p-8 text-center text-base-content/60">
+                    No hay alumnos inscritos en este grupo.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT AJAX PARA NO RECARGAR PÁGINA -->
+<script>
+async function marcar(btn, socioId, horarioId) {
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = `<span class="loading loading-spinner"></span>`;
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('/asistencia/api/marcar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ socio_id: socioId, horario_id: horarioId })
+        });
+
+        if (response.ok) {
+            btn.classList.remove('btn-outline');
+            btn.classList.add('btn-success');
+            btn.innerHTML = '✅ Listo';
+            // Se mantiene disabled
+        } else {
+            alert('Error al registrar la asistencia.');
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+        }
+    } catch (error) {
+        console.error('Error en la petición fetch:', error);
+        alert('Ocurrió un error de red.');
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- COLUMNA IZQUIERDA: INFORMACIÓN PERSONAL -->
+    <div class="lg:col-span-1">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center">
+                <!-- Avatar -->
+                <div class="avatar placeholder mb-4">
+                    <div class="bg-primary text-neutral-content rounded-full w-24">
+                        <span class="text-3xl">{{ socio.nombre_completo[:2].upper() }}</span>
+                    </div>
+                </div>
+                
+                <h2 class="card-title">{{ socio.nombre_completo }}</h2>
+                <p class="text-neutral-500">{{ socio.folio }}</p>
+                
+                <!-- Badge de Estatus -->
+                <div class="badge badge-lg {{ color_estatus }}">{{ estatus }}</div>
+                
+                <div class="divider"></div>
+                
+                <div class="text-left space-y-2 w-full">
+                    <p><strong>Nivel:</strong> <span class="badge badge-info">{{ socio.nivel }}</span></p>
+                    <p><strong>Plan:</strong> {{ socio.membresia.nombre }}</p>
+                    <p><strong>Teléfono:</strong> {{ socio.telefono or 'No registrado' }}</p>
+                    <p><strong>Email:</strong> {{ socio.email or 'No registrado' }}</p>
+                    <p><strong>Registro:</strong> {{ socio.fecha_registro.strftime('%d/%m/%Y') }}</p>
+                </div>
+
+                <div class="card-actions justify-center w-full mt-4 space-y-2">
+                    <a href="{{ url_for('finanzas.cobrar', socio_id=socio.id) }}" class="btn btn-success btn-block">💲 Registrar Pago</a>
+                    <a href="{{ url_for('academico.inscribir', socio_id=socio.id) }}" class="btn btn-primary btn-block">📅 Gestionar Clases</a>
+                    <a href="{{ url_for('socios.editar', id=socio.id) }}" class="btn btn-outline btn-secondary btn-block">✏️ Editar Datos</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: HISTORIALES -->
+    <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-xl h-full">
+            <div class="card-body">
+                <div role="tablist" class="tabs tabs-lifted">
+                    <!-- TAB 1: PAGOS -->
+                    <input type="radio" name="my_tabs" role="tab" class="tab" aria-label="💰 Historial Pagos" checked />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                        {% if pagos %}
+                        <div class="overflow-x-auto">
+                            <table class="table table-zebra w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Concepto</th>
+                                        <th>Monto</th>
+                                        <th>Recibo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pago in pagos %}
+                                    <tr>
+                                        <td>{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                                        <td>
+                                            <strong>{{ pago.concepto_tipo }}</strong><br>
+                                            <small class="text-neutral-500">{{ pago.detalle_concepto }}</small>
+                                        </td>
+                                        <td class="font-bold text-success">${{ pago.total_cobrado }}</td>
+                                        <td>
+                                            <div class="badge badge-outline">{{ pago.folio_recibo }}</div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-center text-neutral-500 mt-4">No hay pagos registrados.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- TAB 2: ASISTENCIA -->
+                    <input type="radio" name="my_tabs" role="tab" class="tab" aria-label="✅ Asistencias" />
+                    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                        {% if asistencias %}
+                        <div class="overflow-x-auto">
+                            <table class="table table-zebra w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Día</th>
+                                        <th>Clase</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for a in asistencias %}
+                                    <tr>
+                                        <td>{{ a.fecha.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ a.horario.dia_semana }}</td>
+                                        <td>{{ a.horario.hora_inicio.strftime('%H:%M') }}</td>
+                                        <td>
+                                            {% if a.estado == 'Presente' %}
+                                                <div class="badge badge-success">Presente</div>
+                                            {% else %}
+                                                <div class="badge badge-error">{{ a.estado }}</div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-center text-neutral-500 mt-4">No hay registros de asistencia recientes.</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

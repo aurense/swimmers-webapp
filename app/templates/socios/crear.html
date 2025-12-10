@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title mb-4">{{ titulo if titulo else "Registrar Nuevo Socio" }}</h2>
+
+            <form method="POST" class="space-y-4">
+                {{ form.hidden_tag() }}
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.nombre_completo.label.text }}</span>
+                    </label>
+                    {{ form.nombre_completo(class="input input-bordered w-full") }}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">{{ form.email.label.text }}</span>
+                        </label>
+                        {{ form.email(class="input input-bordered w-full") }}
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">{{ form.telefono.label.text }}</span>
+                        </label>
+                        {{ form.telefono(class="input input-bordered w-full") }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">{{ form.nivel.label.text }}</span>
+                        </label>
+                        {{ form.nivel(class="select select-bordered w-full") }}
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">{{ form.membresia_id.label.text }}</span>
+                        </label>
+                        {{ form.membresia_id(class="select select-bordered w-full") }}
+                    </div>
+                </div>
+
+                <div class="card-actions justify-end pt-4">
+                    <a href="{{ url_for('socios.lista') }}" class="btn btn-ghost">Cancelar</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

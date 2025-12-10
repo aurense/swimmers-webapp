@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Catálogo de Niveles</h1>
+    <a href="{{ url_for('admin.nuevo_nivel') }}" class="btn btn-primary">+ Nuevo Nivel</a>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body p-0">
+        <div class="overflow-x-auto">
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th class="p-4">Orden</th>
+                        <th class="p-4">Nivel</th>
+                        <th class="text-right p-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for n in niveles %}
+                    <tr>
+                        <td class="p-4">{{ n.orden }}</td>
+                        <td class="p-4"><strong>{{ n.nombre }}</strong></td>
+                        <td class="text-right p-4">
+                            <a href="{{ url_for('admin.editar_nivel', id=n.id) }}" class="btn btn-sm btn-outline btn-primary">✏️</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-6">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost">← Volver al Panel</a>
+</div>
+{% endblock %}

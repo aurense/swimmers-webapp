@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title mb-4">{{ titulo }}</h2>
+
+            <form method="POST" class="space-y-4">
+                {{ form.hidden_tag() }}
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.nombre.label.text }}</span>
+                    </label>
+                    {{ form.nombre(class="input input-bordered w-full", placeholder="Ej. Plan Intensivo") }}
+                    <label class="label">
+                        <span class="label-text-alt">Nombre descriptivo que aparecerá en los recibos.</span>
+                    </label>
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">{{ form.clases_por_semana.label.text }}</span>
+                    </label>
+                    {{ form.clases_por_semana(class="input input-bordered w-full") }}
+                     <label class="label">
+                        <span class="label-text-alt">Número máximo de clases que el alumno puede reservar.</span>
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end pt-4">
+                    <a href="{{ url_for('admin.membresias') }}" class="btn btn-ghost">Cancelar</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

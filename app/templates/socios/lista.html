@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-4">
+    <h2 class="text-2xl font-bold">Directorio de Socios</h2>
+    <a href="{{ url_for('socios.crear') }}" class="btn btn-primary">+ Nuevo Socio</a>
+</div>
+
+<div class="overflow-x-auto">
+    <table class="table table-zebra w-full">
+        <thead>
+            <tr>
+                <th>Folio</th>
+                <th>Nombre</th>
+                <th>Nivel</th>
+                <th>Membresía</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for socio in socios %}
+            <tr>
+                <td><span class="font-bold">{{ socio.folio }}</span></td>
+                <td>
+                    <a href="{{ url_for('socios.perfil', id=socio.id) }}" class="link link-hover font-bold">
+                        {{ socio.nombre_completo }}
+                    </a>
+                </td>
+                <td>
+                    <div class="badge badge-info">{{ socio.nivel }}</div>
+                </td>
+                <td>{{ socio.membresia.nombre }}</td>
+                <td class="space-x-2">
+                    <a href="{{ url_for('academico.inscribir', socio_id=socio.id) }}" class="btn btn-sm btn-primary" title="Inscribir Clases">
+                        📅
+                    </a>
+                    <a href="{{ url_for('finanzas.cobrar', socio_id=socio.id) }}" class="btn btn-sm btn-success" title="Registrar Pago">
+                        💲
+                    </a>
+                    <a href="{{ url_for('socios.editar', id=socio.id) }}" class="btn btn-sm btn-outline btn-secondary" title="Editar Datos">
+                       ✏️
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

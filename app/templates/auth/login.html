@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-[calc(100vh-150px)]">
+    <div class="card w-96 bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title justify-center">🏊 Swimmers App</h2>
+            <p class="text-center">Iniciar Sesión</p>
+            <form method="POST" class="space-y-4">
+                {{ form.hidden_tag() }}
+
+                <div class="form-control">
+                    {{ form.username.label(class="label") }}
+                    {{ form.username(class="input input-bordered w-full") }}
+                </div>
+
+                <div class="form-control">
+                    {{ form.password.label(class="label") }}
+                    {{ form.password(class="input input-bordered w-full") }}
+                </div>
+
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">{{ form.remember_me.label.text }}</span>
+                        {{ form.remember_me(class="checkbox") }}
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end">
+                    {{ form.submit(class="btn btn-primary w-full") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mb-8">
+    <h1 class="text-2xl font-bold text-primary">Clases de Hoy: {{ dia }}</h1>
+    <p class="text-base-content/70 mt-1">{{ clases|length }} grupos programados</p>
+</div>
+
+<div class="flex justify-center">
+    <div class="w-full max-w-2xl">
+        {% if not clases %}
+            <div role="alert" class="alert alert-warning justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <span>No hay clases programadas para hoy.</span>
+            </div>
+        {% endif %}
+
+        <div class="space-y-4">
+            {% for clase in clases %}
+            <a href="{{ url_for('asistencia.tomar_lista', horario_id=clase.id) }}"
+               class="card bg-base-100 shadow-md hover:shadow-xl transition-shadow cursor-pointer">
+                <div class="card-body p-4 flex flex-row justify-between items-center">
+                    <div>
+                        <h2 class="card-title">{{ clase.hora_inicio.strftime('%H:%M') }} - {{ clase.hora_fin.strftime('%H:%M') }}</h2>
+                        <div class="badge {% if clase.nivel == 'Niños' %}badge-info{% else %}badge-secondary{% endif %} badge-outline mt-1">
+                            {{ clase.nivel }}
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                         <span class="btn btn-outline btn-primary hidden md:flex">
+                            Tomar Lista 📋
+                        </span>
+                        <span class="btn btn-primary btn-square md:hidden">
+                            📋
+                        </span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

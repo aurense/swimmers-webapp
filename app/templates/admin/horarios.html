@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- COLUMNA IZQUIERDA: CREAR -->
+    <div class="lg:col-span-1">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Nuevo Horario</h2>
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="form-control w-full mb-2">
+                        <label class="label">{{ form.dia_semana.label }}</label>
+                        {{ form.dia_semana(class="select select-bordered") }}
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-2">
+                        <div class="form-control">
+                            <label class="label">{{ form.hora_inicio.label }}</label>
+                            {{ form.hora_inicio(class="input input-bordered", type="time") }}
+                        </div>
+                        <div class="form-control">
+                            <label class="label">{{ form.hora_fin.label }}</label>
+                            {{ form.hora_fin(class="input input-bordered", type="time") }}
+                        </div>
+                    </div>
+
+                    <div class="form-control w-full mb-2">
+                        <label class="label">{{ form.nivel.label }}</label>
+                        {{ form.nivel(class="select select-bordered") }}
+                    </div>
+
+                    <div class="form-control w-full mb-4">
+                        <label class="label">{{ form.capacidad_maxima.label }}</label>
+                        {{ form.capacidad_maxima(class="input input-bordered") }}
+                    </div>
+
+                    {{ form.submit(class="btn btn-primary w-full") }}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: LISTA -->
+    <div class="lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">Clases Actuales</h2>
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Día</th>
+                        <th>Hora</th>
+                        <th>Nivel</th>
+                        <th>Cupo</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in horarios %}
+                    <tr>
+                        <td>{{ h.dia_semana }}</td>
+                        <td>{{ h.hora_inicio.strftime('%H:%M') }} - {{ h.hora_fin.strftime('%H:%M') }}</td>
+                        <td><div class="badge badge-neutral">{{ h.nivel }}</div></td>
+                        <td>{{ h.capacidad_maxima }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.borrar_horario', id=h.id) }}" 
+                               class="btn btn-error btn-xs"
+                               onclick="return confirm('¿Seguro que deseas eliminar esta clase?');">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

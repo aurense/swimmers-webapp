@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="text-center mb-12">
+    <h1 class="text-4xl font-bold">🛠️ Panel de Administración</h1>
+    <p class="text-lg text-base-content/70 mt-2">Configuración del sistema</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+    <!-- Card: Horarios -->
+    <a href="{{ url_for('admin.horarios') }}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+        <div class="card-body items-center text-center">
+            <h2 class="card-title text-2xl">📅 Horarios</h2>
+            <p>Crear o eliminar clases</p>
+        </div>
+    </a>
+
+    <!-- Card: Membresías -->
+    <a href="{{ url_for('admin.membresias') }}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+        <div class="card-body items-center text-center">
+            <h2 class="card-title text-2xl">💳 Membresías</h2>
+            <p>Planes y límites de clases</p>
+        </div>
+    </a>
+
+    <!-- Card: Tarifas -->
+    <a href="{{ url_for('admin.tarifas') }}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+        <div class="card-body items-center text-center">
+            <h2 class="card-title text-2xl">💲 Tarifas</h2>
+            <p>Editar precios por membresía</p>
+        </div>
+    </a>
+    
+    <!-- Card: Niveles -->
+    <a href="{{ url_for('admin.niveles') }}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+        <div class="card-body items-center text-center">
+            <h2 class="card-title text-2xl">📊 Niveles</h2>
+            <p>Niños, Adultos, Bebés...</p>
+        </div>
+    </a>
+
+</div>
+{% endblock %}
