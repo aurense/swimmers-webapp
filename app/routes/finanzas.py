@@ -70,3 +70,10 @@ def cobrar(socio_id):
         return redirect(url_for('socios.lista'))
 
     return render_template('finanzas/cobrar.html', socio=socio)
+
+@finanzas_bp.route('/recibo/<int:id>')
+@login_required
+def ver_recibo(id):
+    pago = Pago.query.get_or_404(id)
+    # Renderizamos una plantilla dedicada EXCLUSIVA para impresión
+    return render_template('finanzas/recibo_print.html', pago=pago)

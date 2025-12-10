@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from app import db
-from app.models import Horario, Asistencia, Inscripcion
+from app.models import Horario, Asistencia, Inscripcion, Socio
 from datetime import datetime
 from flask_login import login_required
 
@@ -50,7 +50,8 @@ def tomar_lista(horario_id):
     return render_template('asistencia/tomar_lista.html', 
                            horario=horario, 
                            inscripciones=inscripciones,
-                           presentes=socios_presentes_ids)
+                           presentes=socios_presentes_ids,
+                           asistencias_hoy=asistencias_hoy)
 
 # --- API: PROCESAR EL CLIC (AJAX) ---
 @asistencia_bp.route('/api/marcar', methods=['POST'])
@@ -59,28 +60,44 @@ def marcar_asistencia():
     data = request.get_json()
     socio_id = data.get('socio_id')
     horario_id = data.get('horario_id')
+
+    # 1. Obtener socio
+    socio = Socio.query.get(socio_id)
     
+    # 2. VALIDAR ESTATUS FINANCIERO
+    es_activo, mensaje_estatus, _ = socio.get_estatus_financiero()
+    
+    if not es_activo:
+        # Retornamos error 403 (Forbidden) con el mensaje
+        return jsonify({'status': 'error', 'msg': f'⛔ DEUDOR: {mensaje_estatus}'}), 403
+    
+    # Recibimos el estado (si no viene, asumimos Presente)
+    nuevo_estado = data.get('estado', 'Presente')
+
     fecha_hoy = datetime.now().date()
-    
-    # Verificar si ya existe para evitar duplicados
-    existe = Asistencia.query.filter_by(
+
+    # 1. Buscar si ya existe registro hoy
+    asistencia = Asistencia.query.filter_by(
         socio_id=socio_id, 
         horario_id=horario_id, 
         fecha=fecha_hoy
     ).first()
     
-    if existe:
-        return jsonify({'status': 'duplicated', 'msg': 'Ya registrado'}), 200
-        
-    # Crear registro
-    nueva_asistencia = Asistencia(
-        socio_id=socio_id,
-        horario_id=horario_id,
-        fecha=fecha_hoy,
-        estado='Presente'
-    )
+    if asistencia:
+        # SI YA EXISTE: Actualizamos el estado (Corregir error)
+        asistencia.estado = nuevo_estado
+        msg = 'Actualizado'
+    else:
+        # SI NO EXISTE: Creamos uno nuevo
+        asistencia = Asistencia(
+            socio_id=socio_id,
+            horario_id=horario_id,
+            fecha=fecha_hoy,
+            estado=nuevo_estado
+        )
+        db.session.add(asistencia)
+        msg = 'Registrado'
     
-    db.session.add(nueva_asistencia)
     db.session.commit()
     
-    return jsonify({'status': 'success'}), 200
+    return jsonify({'status': 'success', 'msg': msg, 'estado': nuevo_estado}), 200

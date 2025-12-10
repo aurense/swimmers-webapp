@@ -33,8 +33,15 @@ def validar_reglas_dia(socio_id, nuevo_horario):
 def inscribir(socio_id):
     socio = Socio.query.get_or_404(socio_id)
     
+    # --- NUEVA VALIDACIÓN DE ESTATUS ---
+    es_activo, mensaje_estatus, _ = socio.get_estatus_financiero()
+
     # PROCESAR INSCRIPCIÓN (POST)
     if request.method == 'POST':
+        # 0. BLOQUEO POR MOROSIDAD
+        if not es_activo:
+            flash(f'⛔ BLOQUEO: No se puede inscribir. {mensaje_estatus}.', 'danger')
+            return redirect(url_for('academico.inscribir', socio_id=socio.id))
         horario_id = request.form.get('horario_id')
         horario = Horario.query.get(horario_id)
         

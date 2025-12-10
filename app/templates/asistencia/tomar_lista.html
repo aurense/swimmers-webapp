@@ -6,6 +6,11 @@
         <h1 class="text-xl font-bold">Clase: {{ horario.hora_inicio.strftime('%H:%M') }}</h1>
         <span class="badge badge-ghost">{{ horario.nivel }}</span>
     </div>
+    <div class="flex justify-end mb-3">
+        <button onclick="marcarTodos()" class="btn btn-primary btn-sm">
+            ✅ Marcar Todos
+        </button>
+    </div>
     <a href="{{ url_for('asistencia.hoy') }}" class="btn btn-ghost btn-sm">← Volver</a>
 </div>
 
@@ -15,33 +20,73 @@
             {% for item in inscripciones %}
                 {% set socio = item.socio %}
                 {% set ya_vino = socio.id in presentes %}
-                
-                <div class="flex items-center justify-between p-4">
-                    <div class="flex items-center gap-4">
-                        <div class="avatar placeholder">
-                            <div class="bg-neutral-focus text-neutral-content rounded-full w-12">
-                                <span>{{ socio.nombre_completo[:2].upper() }}</span>
-                            </div>
+                <!-- Calcular estatus usando el método del modelo -->
+                {% set es_activo, msg_estatus, color = socio.get_estatus_financiero() %}
+
+                <li class="list-group-item d-flex justify-content-between align-items-center p-3 {{ 'bg-red-50' if not es_activo else '' }}">
+                    <div class="d-flex align-items-center">
+                        <!-- Avatar (Borde Rojo si debe) -->
+                        <div class="rounded-circle d-flex justify-content-center align-items-center me-3 border {{ 'border-error border-4' if not es_activo else 'bg-light' }}" 
+                             style="width: 45px; height: 45px;">
+                             {{ socio.nombre_completo[:2].upper() }}
                         </div>
                         <div>
-                            <div class="font-bold">{{ socio.nombre_completo }}</div>
-                            <div class="text-sm opacity-50">{{ socio.folio }}</div>
+                            <h6 class="m-0 font-bold {{ 'text-error' if not es_activo else '' }}">
+                                {{ socio.nombre_completo }}
+                            </h6>
+                            
+                            {% if not es_activo %}
+                                <!-- Etiqueta de Moroso -->
+                                <span class="badge badge-error badge-sm">{{ msg_estatus }}</span>
+                            {% else %}
+                                <small class="text-muted">{{ socio.folio }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% set asistencia_actual = None %}
+                    <!-- Buscamos si ya tiene asistencia para pintar el botón al cargar -->
+                    {% for a in asistencias_hoy %} <!-- Necesitas pasar 'asistencias_hoy' (objeto completo) en vez de solo IDs al render_template en el paso anterior, si no, usa lógica JS -->
+                        {% if a.socio_id == socio.id %}{% set asistencia_actual = a.estado %}{% endif %}
+                    {% endfor %}
+
+                    <!-- CONTENEDOR DE BOTONES -->
+                    <div class="join">
+                        
+                        <!-- OPCIÓN 1: PRESENTE (Botón Principal Grande) -->
+                        <button onclick="marcar(this, {{ socio.id }}, {{ horario.id }}, 'Presente')"
+                                class="btn join-item w-24 
+                                {{ 'btn-success text-white' if asistencia_actual == 'Presente' else 'btn-outline' }}"
+                                id="btn-main-{{ socio.id }}">
+                            {% if asistencia_actual == 'Presente' %}✅ Listo{% else %}Presente{% endif %}
+                        </button>
+
+                        <!-- OPCIÓN 2: MENÚ DESPLEGABLE (Para Ausencias) -->
+                        <div class="dropdown dropdown-end">
+                            <div tabindex="0" role="button" class="btn join-item 
+                                {{ 'btn-error text-white' if asistencia_actual == 'Falta' else ('btn-warning text-white' if asistencia_actual == 'Justificado' else 'btn-outline') }}"
+                                id="btn-menu-{{ socio.id }}">
+                                ▼
+                            </div>
+                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
+                                <li>
+                                    <a onclick="marcar(this, {{ socio.id }}, {{ horario.id }}, 'Falta')" class="text-error font-bold">
+                                        🔴 Falta
+                                    </a>
+                                </li>
+                                <li>
+                                    <a onclick="marcar(this, {{ socio.id }}, {{ horario.id }}, 'Justificado')" class="text-warning font-bold">
+                                        🟡 Justificado
+                                    </a>
+                                </li>
+                                <!-- Opcional: Borrar asistencia -->
+                                <li><a class="text-gray-400 text-xs">Borrar registro (Admin)</a></li>
+                            </ul>
                         </div>
                     </div>
 
-                    <!-- BOTÓN ONE-TAP -->
-                    <button 
-                        onclick="marcar(this, {{ socio.id }}, {{ horario.id }})"
-                        class="btn w-28 {% if ya_vino %}btn-success{% else %}btn-outline{% endif %}"
-                        {% if ya_vino %}disabled{% endif %}>
-                        
-                        {% if ya_vino %}
-                            ✅ Listo
-                        {% else %}
-                            Presente
-                        {% endif %}
-                    </button>
-                </div>
+                    
+                </li>
             {% else %}
                 <div class="p-8 text-center text-base-content/60">
                     No hay alumnos inscritos en este grupo.
@@ -50,37 +95,76 @@
         </div>
     </div>
 </div>
-
-<!-- SCRIPT AJAX PARA NO RECARGAR PÁGINA -->
 <script>
-async function marcar(btn, socioId, horarioId) {
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = `<span class="loading loading-spinner"></span>`;
-    btn.disabled = true;
+async function marcar(elemento, socioId, horarioId, estado) {
+    // Referencias a los botones
+    const btnMain = document.getElementById(`btn-main-${socioId}`);
+    const btnMenu = document.getElementById(`btn-menu-${socioId}`);
+    
+    // Feedback visual de carga (opcional)
+    const textoOriginal = btnMain.innerText;
+    btnMain.innerText = "...";
 
     try {
         const response = await fetch('/asistencia/api/marcar', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ socio_id: socioId, horario_id: horarioId })
+            body: JSON.stringify({ 
+                socio_id: socioId, 
+                horario_id: horarioId,
+                estado: estado // <--- Enviamos el estado seleccionado
+            })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            btn.classList.remove('btn-outline');
-            btn.classList.add('btn-success');
-            btn.innerHTML = '✅ Listo';
-            // Se mantiene disabled
+            // LIMPIAR CLASES PREVIAS
+            btnMain.className = "btn join-item w-24"; 
+            btnMenu.className = "btn join-item";
+
+            // APLICAR NUEVOS ESTILOS SEGÚN ESTADO
+            if (estado === 'Presente') {
+                btnMain.classList.add('btn-success', 'text-white');
+                btnMain.innerText = "✅ Listo";
+                btnMenu.classList.add('btn-outline'); // Menú neutro
+            } 
+            else if (estado === 'Falta') {
+                btnMain.classList.add('btn-outline'); // Principal neutro
+                btnMain.innerText = "Presente";
+                btnMenu.classList.add('btn-error', 'text-white'); // Menú Rojo
+            } 
+            else if (estado === 'Justificado') {
+                btnMain.classList.add('btn-outline'); // Principal neutro
+                btnMain.innerText = "Presente";
+                btnMenu.classList.add('btn-warning', 'text-white'); // Menú Amarillo
+            }
+            
+            // Cerrar el dropdown (quitando el foco)
+            document.activeElement.blur();
+
         } else {
-            alert('Error al registrar la asistencia.');
-            btn.disabled = false;
-            btn.innerHTML = textoOriginal;
+            alert(data.msg); // Error (ej. Moroso)
+            btnMain.innerText = textoOriginal;
         }
     } catch (error) {
-        console.error('Error en la petición fetch:', error);
-        alert('Ocurrió un error de red.');
-        btn.disabled = false;
-        btn.innerHTML = textoOriginal;
+        console.error(error);
+        btnMain.innerText = textoOriginal;
     }
 }
+</script>
+<script>
+    async function marcarTodos() {
+        // Seleccionar todos los botones que no estén deshabilitados (ya marcados o morosos)
+        const botones = document.querySelectorAll('button[onclick^="marcar"]:not(:disabled)');
+        
+        // Disparar el clic automáticamente en cada uno
+        // (O idealmente, crear un endpoint API de bulk_insert para hacerlo en 1 sola petición)
+        for (const btn of botones) {
+            btn.click();
+            // Pequeña pausa para no saturar el servidor si usas el método simple
+            await new Promise(r => setTimeout(r, 100)); 
+        }
+    }
 </script>
 {% endblock %}

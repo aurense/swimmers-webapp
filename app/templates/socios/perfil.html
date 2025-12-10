@@ -55,7 +55,7 @@
                                         <th>Fecha</th>
                                         <th>Concepto</th>
                                         <th>Monto</th>
-                                        <th>Recibo</th>
+                                        <th>Acción</th> <!-- Columna Nueva -->
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -63,12 +63,16 @@
                                     <tr>
                                         <td>{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</td>
                                         <td>
-                                            <strong>{{ pago.concepto_tipo }}</strong><br>
-                                            <small class="text-neutral-500">{{ pago.detalle_concepto }}</small>
+                                            <div class="font-bold">{{ pago.concepto_tipo }}</div>
+                                            <div class="text-xs opacity-50">{{ pago.detalle_concepto }}</div>
                                         </td>
-                                        <td class="font-bold text-success">${{ pago.total_cobrado }}</td>
+                                        <td class="text-success font-bold">${{ pago.total_cobrado }}</td>
                                         <td>
-                                            <div class="badge badge-outline">{{ pago.folio_recibo }}</div>
+                                            <!-- BOTÓN QUE ABRE EL MODAL -->
+                                            <button onclick="abrirRecibo({{ pago.id }})" 
+                                                    class="btn btn-sm btn-ghost border-gray-200">
+                                                🖨️ Recibo
+                                            </button>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -122,4 +126,56 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL DE DAISYUI -->
+<dialog id="modal_recibo" class="modal">
+    <div class="modal-box w-11/12 max-w-3xl h-[90vh] p-0 relative bg-gray-200">
+      
+      <!-- BARRA SUPERIOR DEL MODAL -->
+      <div class="bg-base-100 p-2 flex justify-between items-center shadow-md z-10 sticky top-0">
+          <h3 class="font-bold text-lg px-4">Vista Previa</h3>
+          <div class="flex gap-2">
+              <!-- Botón IMPRIMIR (Llama a la función del iframe) -->
+              <button onclick="imprimirIframe()" class="btn btn-primary btn-sm">
+                  🖨️ Imprimir
+              </button>
+              <!-- Botón CERRAR -->
+              <form method="dialog">
+                  <button class="btn btn-circle btn-ghost btn-sm">✕</button>
+              </form>
+          </div>
+      </div>
+  
+      <!-- IFRAME DONDE SE CARGA EL RECIBO -->
+      <iframe id="iframe_recibo" src="" class="w-full h-full border-0 bg-white"></iframe>
+  
+    </div>
+    
+    <!-- Cierra al hacer clic fuera -->
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+  
+  <!-- SCRIPT DE CONTROL -->
+  <script>
+      function abrirRecibo(pagoId) {
+          // 1. Construir la URL del recibo
+          const url = `/finanzas/recibo/${pagoId}`;
+          
+          // 2. Cargarla en el iframe
+          const iframe = document.getElementById('iframe_recibo');
+          iframe.src = url;
+          
+          // 3. Mostrar el modal
+          document.getElementById('modal_recibo').showModal();
+      }
+  
+      function imprimirIframe() {
+          const iframe = document.getElementById('iframe_recibo');
+          // Enfocar y mandar a imprimir el contenido del iframe, no la página completa
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+      }
+  </script>
 {% endblock %}

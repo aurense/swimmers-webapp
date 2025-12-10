@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo #{{ pago.folio_recibo }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos EXCLUSIVOS para Impresión */
+        @media print {
+            body { background: white; -webkit-print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-border { border: 1px solid #000 !important; }
+            /* Ocultar URL y fechas automáticas del navegador (depende del browser, pero ayuda) */
+            @page { margin: 0.5cm; }
+        }
+        body { font-family: 'Courier New', Courier, monospace; } /* Look tipo ticket */
+    </style>
+</head>
+<body class="bg-gray-100 p-4 flex justify-center min-h-screen">
+
+    <!-- CONTENEDOR DEL RECIBO (Tamaño Ticket Ancho o Media Carta) -->
+    <div class="bg-white p-8 shadow-lg max-w-lg w-full print-border relative">
+        
+        <!-- CABECERA -->
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold uppercase tracking-widest">Swimmers</h1>
+            <p class="text-sm text-gray-500">Escuela de Natación Atlacomulco</p>
+            <p class="text-xs mt-1">Av. Principal #123, Col. Centro</p>
+            <p class="text-xs">Tel: 55-1234-5678</p>
+        </div>
+
+        <hr class="border-dashed border-gray-300 my-4">
+
+        <!-- DATOS DEL PAGO -->
+        <div class="flex justify-between mb-2">
+            <span class="text-gray-500">Folio:</span>
+            <span class="font-bold">{{ pago.folio_recibo }}</span>
+        </div>
+        <div class="flex justify-between mb-2">
+            <span class="text-gray-500">Fecha:</span>
+            <span>{{ pago.fecha_pago.strftime('%d/%m/%Y %H:%M') }}</span>
+        </div>
+        <div class="flex justify-between mb-4">
+            <span class="text-gray-500">Cliente:</span>
+            <span class="font-bold text-right">{{ pago.socio.nombre_completo }}</span>
+        </div>
+
+        <hr class="border-dashed border-gray-300 my-4">
+
+        <!-- DETALLE CONCEPTOS -->
+        <div class="mb-8">
+            <div class="flex justify-between font-bold mb-2">
+                <span>Descripción</span>
+                <span>Importe</span>
+            </div>
+            
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p>{{ pago.concepto_tipo }}</p>
+                    <p class="text-xs text-gray-500">{{ pago.detalle_concepto }}</p>
+                </div>
+                <span>${{ "{:,.2f}".format(pago.monto_base) }}</span>
+            </div>
+
+            {% if pago.monto_ajuste > 0 %}
+            <div class="flex justify-between text-sm text-gray-500">
+                <span>(+) Ajustes/Recargos</span>
+                <span>${{ "{:,.2f}".format(pago.monto_ajuste) }}</span>
+            </div>
+            {% elif pago.monto_ajuste < 0 %}
+            <div class="flex justify-between text-sm text-success">
+                <span>(-) Descuento/Beca</span>
+                <span>-${{ "{:,.2f}".format(pago.monto_ajuste * -1) }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- TOTALES -->
+        <div class="border-t-2 border-black pt-4 mb-8">
+            <div class="flex justify-between text-xl font-bold">
+                <span>TOTAL</span>
+                <span>${{ "{:,.2f}".format(pago.total_cobrado) }}</span>
+            </div>
+            <p class="text-xs text-center mt-2 text-gray-500">Método de Pago: {{ pago.metodo_pago }}</p>
+        </div>
+
+        <!-- PIE DE PAGINA -->
+        <div class="text-center text-xs mt-12">
+            <p>__________________________</p>
+            <p class="mb-4">Firma de Conformidad</p>
+            <p>¡Gracias por su preferencia!</p>
+            <p class="text-gray-400 mt-2">Este documento no es un comprobante fiscal.</p>
+        </div>
+
+    </div>
+
+</body>
+</html>

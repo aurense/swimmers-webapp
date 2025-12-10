@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import login  
@@ -56,6 +56,37 @@ class Socio(db.Model):
     inscripciones = db.relationship('Inscripcion', backref='socio', lazy='dynamic')
     asistencias = db.relationship('Asistencia', backref='socio', lazy='dynamic')
     pagos = db.relationship('Pago', backref='socio', lazy='dynamic')
+
+    def get_estatus_financiero(self):
+        """
+        Retorna una tupla: (Es_Activo: bool, Mensaje: str, Color: str)
+        """
+        # 1. VALIDAR ANUALIDAD
+        pago_anual = self.pagos.filter_by(concepto_tipo='Anualidad')\
+            .order_by(Pago.fecha_pago.desc()).first()
+        
+        if not pago_anual:
+            return False, "Falta pago de Inscripción/Anualidad", "error"
+            
+        dias_anualidad = (datetime.now() - pago_anual.fecha_pago).days
+        if dias_anualidad > 365:
+            return False, "Anualidad Vencida", "error"
+
+        # 2. VALIDAR MENSUALIDAD
+        pago_mes = self.pagos.filter_by(concepto_tipo='Mensualidad')\
+            .order_by(Pago.fecha_pago.desc()).first()
+            
+        if not pago_mes:
+            return False, "No ha pagado su primera mensualidad", "error"
+            
+        dias_mes = (datetime.now() - pago_mes.fecha_pago).days
+        
+        # Tolerancia: 35 días (para dar margen de 5 días después del mes)
+        if dias_mes > 35: 
+            return False, f"Mensualidad Vencida ({dias_mes} días)", "warning"
+            
+        # SI PASA TODO
+        return True, "Activo / Al Corriente", "success"
 
 class Inscripcion(db.Model):
     """ Reservaciones Fijas """
