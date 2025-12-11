@@ -2,6 +2,7 @@ from flask import Flask, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager 
+from datetime import datetime
 from config import Config
 
 # Inicializar extensiones
@@ -53,5 +54,13 @@ def create_app(config_class=Config):
     @app.route('/')
     def index():
         return redirect('/auth/login')
+
+    @app.context_processor
+    def inject_context():
+        """
+        Esta función hace que la variable 'current_year' 
+        esté disponible en TODOS los archivos HTML.
+        """
+        return dict(current_year=datetime.now().year)
 
     return app
