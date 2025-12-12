@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-8">
+    <div class="text-center mb-6">
+        <h1 class="text-3xl font-bold">🛎️ Asistencia en Recepción</h1>
+        <p class="text-gray-500">Busca por nombre o folio</p>
+    </div>
+
+    <!-- BARRA DE BÚSQUEDA GRANDE -->
+    <div class="form-control relative">
+        <input type="text" id="searchInput" placeholder="Escribe 'Juan' o 'SW001'..." 
+               class="input input-lg input-bordered input-primary w-full shadow-lg text-xl" 
+               autofocus autocomplete="off">
+        
+        <!-- SPINNER DE CARGA -->
+        <span id="loader" class="loading loading-spinner loading-md absolute right-4 top-4 hidden"></span>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div id="resultsArea" class="mt-4 flex flex-col gap-3">
+        <!-- Aquí se inyectan las tarjetas con JS -->
+    </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const resultsArea = document.getElementById('resultsArea');
+    const loader = document.getElementById('loader');
+
+    searchInput.addEventListener('input', async (e) => {
+        const query = e.target.value;
+        if (query.length < 3) {
+            resultsArea.innerHTML = '';
+            return;
+        }
+
+        loader.classList.remove('hidden');
+        
+        const res = await fetch(`/socios/api/buscar?q=${query}`);
+        const socios = await res.json();
+        
+        loader.classList.add('hidden');
+        renderResultados(socios);
+    });
+
+    function renderResultados(socios) {
+        resultsArea.innerHTML = '';
+        
+        socios.forEach(socio => {
+            const colorClass = socio.es_activo ? 'border-l-4 border-success' : 'border-l-4 border-error bg-red-50';
+            const btnState = socio.es_activo ? 'btn-primary' : 'btn-disabled';
+            const statusText = socio.es_activo ? '✅ Activo' : `⛔ ${socio.msg_estatus}`;
+
+            const card = `
+                <div class="card card-side bg-base-100 shadow-md ${colorClass} p-2 items-center">
+                    <figure class="pl-2">
+                        <div class="avatar">
+                            <div class="w-16 rounded-full">
+                                <img src="/static/uploads/${socio.foto}" />
+                            </div>
+                        </div>
+                    </figure>
+                    <div class="card-body p-4">
+                        <h2 class="card-title text-lg">${socio.nombre}</h2>
+                        <p class="text-sm text-gray-500">${socio.folio} • ${statusText}</p>
+                    </div>
+                    <div class="card-actions pr-4">
+                        <button onclick="marcarEntrada(${socio.id})" class="btn ${btnState}">
+                            Entrada
+                        </button>
+                    </div>
+                </div>
+            `;
+            resultsArea.innerHTML += card;
+        });
+    }
+
+    async function marcarEntrada(socioId) {
+        // Aquí llamas a tu API existente /asistencia/api/marcar
+        // Tip: Como no sabemos el horario exacto, en el backend buscas 
+        // la clase más cercana a la hora actual.
+        // ... lógica fetch ...
+        alert('Asistencia registrada (Lógica pendiente de horario automático)');
+        searchInput.value = '';
+        resultsArea.innerHTML = '';
+        searchInput.focus();
+    }
+</script>
+{% endblock %}

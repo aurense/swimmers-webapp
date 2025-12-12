@@ -14,59 +14,64 @@ def seed_database():
         db.drop_all()
         db.create_all()
 
-        # 2. MEMBRESÍAS
+        # 2. NIVELES (Catálogo principal)
+        print("   Creando Niveles...")
+        n_bebes = Nivel(nombre="Bebés", orden=1)
+        n_ninos = Nivel(nombre="Niños", orden=2)
+        n_adultos = Nivel(nombre="Adultos", orden=3)
+        db.session.add_all([n_bebes, n_ninos, n_adultos])
+        db.session.commit() # Guardamos para obtener los IDs
+
+        # 3. MEMBRESÍAS
         print("   Creando Membresías...")
         plan_a = Membresia(nombre="Plan A (1 Clase/sem)", clases_por_semana=1)
         plan_b = Membresia(nombre="Plan B (2 Clases/sem)", clases_por_semana=2)
         plan_c = Membresia(nombre="Plan C (3 Clases/sem)", clases_por_semana=3)
         plan_f = Membresia(nombre="Plan F (6 Clases/sem)", clases_por_semana=6)
-        
         db.session.add_all([plan_a, plan_b, plan_c, plan_f])
-        db.session.commit() # Guardamos para obtener los IDs
+        db.session.commit() # Guardamos para IDs
 
-        # 3. TARIFAS (Relacionadas con Membresías)
+        # 4. TARIFAS (Relacionadas con Membresías y Niveles)
         print("   Creando Tarifas...")
-        # Tarifas Plan A
-        t1 = Tarifa(membresia_id=plan_a.id, nivel="Niños", costo_mensual=800, costo_anualidad=2000, costo_inscripcion=500)
-        t2 = Tarifa(membresia_id=plan_a.id, nivel="Adultos", costo_mensual=900, costo_anualidad=2000, costo_inscripcion=500)
-        
-        # Tarifas Plan B
-        t3 = Tarifa(membresia_id=plan_b.id, nivel="Niños", costo_mensual=1400, costo_anualidad=2000, costo_inscripcion=500)
-        t4 = Tarifa(membresia_id=plan_b.id, nivel="Adultos", costo_mensual=1600, costo_anualidad=2000, costo_inscripcion=500)
-
+        # Plan A
+        t1 = Tarifa(membresia_id=plan_a.id, nivel_id=n_ninos.id, costo_mensual=800, costo_anualidad=2000, costo_inscripcion=500)
+        t2 = Tarifa(membresia_id=plan_a.id, nivel_id=n_adultos.id, costo_mensual=900, costo_anualidad=2000, costo_inscripcion=500)
+        # Plan B
+        t3 = Tarifa(membresia_id=plan_b.id, nivel_id=n_ninos.id, costo_mensual=1400, costo_anualidad=2000, costo_inscripcion=500)
+        t4 = Tarifa(membresia_id=plan_b.id, nivel_id=n_adultos.id, costo_mensual=1600, costo_anualidad=2000, costo_inscripcion=500)
         db.session.add_all([t1, t2, t3, t4])
 
-        # 4. HORARIOS (Generación masiva)
+        # 5. HORARIOS (Generación masiva)
         print("   Generando Horarios Semanales...")
         dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]
         horas_clase = [
-            (time(16, 0), time(17, 0), "Niños"),  # 4pm a 5pm
-            (time(17, 0), time(18, 0), "Niños"),  # 5pm a 6pm
-            (time(18, 0), time(19, 0), "Adultos"), # 6pm a 7pm
-            (time(19, 0), time(20, 0), "Adultos"), # 7pm a 8pm
+            (time(16, 0), time(17, 0), n_ninos.id),  # 4pm a 5pm
+            (time(17, 0), time(18, 0), n_ninos.id),  # 5pm a 6pm
+            (time(18, 0), time(19, 0), n_adultos.id), # 6pm a 7pm
+            (time(19, 0), time(20, 0), n_adultos.id), # 7pm a 8pm
         ]
 
         for dia in dias:
-            for inicio, fin, nivel in horas_clase:
+            for inicio, fin, nivel_id in horas_clase:
                 h = Horario(
                     dia_semana=dia,
                     hora_inicio=inicio,
                     hora_fin=fin,
-                    nivel=nivel,
+                    nivel_id=nivel_id,
                     capacidad_maxima=8 # Cupo estándar
                 )
                 db.session.add(h)
         
         db.session.commit()
 
-        # 5. SOCIOS DE PRUEBA
+        # 6. SOCIOS DE PRUEBA
         print("   Registrando Socios Dummy...")
         
         # Socio 1: Juanito (Niño, Plan B)
         juan = Socio(
             folio="SW0001",
             nombre_completo="Juanito Pérez",
-            nivel="Niños",
+            nivel_id=n_ninos.id,
             email="juan@test.com",
             membresia_id=plan_b.id,
             fecha_registro=datetime.utcnow()
@@ -76,7 +81,7 @@ def seed_database():
         maria = Socio(
             folio="SW0002",
             nombre_completo="María López",
-            nivel="Adultos",
+            nivel_id=n_adultos.id,
             email="maria@test.com",
             membresia_id=plan_a.id,
             fecha_registro=datetime.utcnow()
@@ -85,10 +90,8 @@ def seed_database():
         db.session.add_all([juan, maria])
         db.session.commit()
 
-        # 6. PAGOS INICIALES (Para probar estado financiero)
+        # 7. PAGOS INICIALES
         print("   Registrando Pagos...")
-        
-        # Juan paga inscripción y anualidad
         pago1 = Pago(
             folio_recibo="REC-001",
             socio_id=juan.id,
@@ -98,36 +101,22 @@ def seed_database():
             total_cobrado=2000,
             metodo_pago="Efectivo"
         )
-        
         db.session.add(pago1)
         db.session.commit()
 
+        # 8. USUARIOS DEL SISTEMA
         print("   Creando Usuarios del Sistema...")
-        
-        # Usuario Administrador
         admin = User(username='admin', role='admin')
-        admin.set_password('admin123') # Contraseña simple para pruebas
-        
-        # Usuario Recepción
+        admin.set_password('admin123')
         recep = User(username='recepcion', role='recepcion')
         recep.set_password('1234')
-        
-        # Usuario Instructor
         profe = User(username='profe', role='instructor')
         profe.set_password('1234')
-        
         db.session.add_all([admin, recep, profe])
         db.session.commit()
 
-        print("   Creando Niveles...")
-        n1 = Nivel(nombre="Bebés", orden=1)
-        n2 = Nivel(nombre="Niños", orden=2)
-        n3 = Nivel(nombre="Adultos", orden=3)
-
-        db.session.add_all([n1, n2, n3])
-        db.session.commit()
-
         print("✅ Base de datos sembrada con éxito.")
+        print(f"   -> {Nivel.query.count()} Niveles")
         print(f"   -> {Membresia.query.count()} Membresías")
         print(f"   -> {Horario.query.count()} Horarios")
         print(f"   -> {Socio.query.count()} Socios")

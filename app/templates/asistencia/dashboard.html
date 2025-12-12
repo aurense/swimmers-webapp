@@ -22,8 +22,8 @@
                 <div class="card-body p-4 flex flex-row justify-between items-center">
                     <div>
                         <h2 class="card-title">{{ clase.hora_inicio.strftime('%H:%M') }} - {{ clase.hora_fin.strftime('%H:%M') }}</h2>
-                        <div class="badge {% if clase.nivel == 'Niños' %}badge-info{% else %}badge-secondary{% endif %} badge-outline mt-1">
-                            {{ clase.nivel }}
+                        <div class="badge {% if clase.nivel.nombre == 'Niños' %}badge-info{% else %}badge-secondary{% endif %} badge-outline mt-1">
+                            {{ clase.nivel.nombre }}
                         </div>
                     </div>
                     <div class="card-actions">

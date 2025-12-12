@@ -12,7 +12,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <div>
                     <h3 class="font-bold">{{ socio.nombre_completo }}</h3>
-                    <div class="text-xs">{{ socio.nivel }} | {{ socio.membresia.nombre }}</div>
+                    <div class="text-xs">{{ socio.nivel.nombre }} | {{ socio.membresia.nombre }}</div>
                 </div>
             </div>
 
@@ -36,16 +36,29 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control w-full">
-                        <label class="label"><span class="label-text">Monto a Cobrar</span></label>
-                         <label class="input-group">
-                            <span>$</span>
-                            <input type="number" step="0.01" class="input input-bordered w-full font-bold text-success" 
-                                   name="monto" id="inputMonto" required>
-                        </label>
-                        <label class="label">
-                            <span class="label-text-alt">Calculado según tarifa vigente</span>
-                        </label>
+                    <!-- BLOQUE DE PRECIOS Y DESCUENTOS -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        
+                        <!-- 1. Monto Base -->
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Monto Base ($)</span></label>
+                            <input type="number" step="0.01" class="input input-bordered w-full font-bold text-gray-600" 
+                                name="monto" id="inputMonto" required readonly>
+                        </div>
+
+                        <!-- 2. Descuento (NUEVO) -->
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Descuento ($)</span></label>
+                            <input type="number" step="10.00" class="input input-bordered w-full text-red-500" 
+                                name="descuento" id="inputDescuento" value="0" placeholder="0.00">
+                        </div>
+
+                        <!-- 3. Total a Pagar (Cálculo Automático) -->
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">Total a Pagar</span></label>
+                            <input type="text" class="input input-bordered w-full bg-base-200 font-bold text-success text-xl" 
+                                id="inputTotal" readonly value="0.00">
+                        </div>
                     </div>
 
                     <div class="form-control w-full">
@@ -76,34 +89,51 @@
 
 <!-- JAVASCRIPT PARA PRECIO AUTOMÁTICO -->
 <script>
+    const inputMonto = document.getElementById('inputMonto');
+    const inputDesc = document.getElementById('inputDescuento');
+    const inputTotal = document.getElementById('inputTotal');
+
+    // Función para recalcular
+    function calcularTotal() {
+        const base = parseFloat(inputMonto.value) || 0;
+        const desc = parseFloat(inputDesc.value) || 0;
+        const total = base - desc;
+        
+        // Evitar números negativos
+        inputTotal.value = total > 0 ? total.toFixed(2) : "0.00";
+    }
+
+    // Escuchar cambios manuales en el descuento
+    inputDesc.addEventListener('input', calcularTotal);
+
+    // Tu código existente de la API (modificado ligeramente)
     document.getElementById('selectConcepto').addEventListener('change', function() {
         const concepto = this.value;
         const socioId = {{ socio.id }};
 
+        // Si es producto, habilitamos edición manual del monto base
         if(concepto === 'Producto') {
-            document.getElementById('inputMonto').value = '';
-            document.getElementById('inputDetalle').value = '';
-            return;
-        }
-
-        fetch('/finanzas/api/consultar_precio', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ socio_id: socioId, concepto: concepto }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.precio_sugerido !== undefined) {
-                document.getElementById('inputMonto').value = data.precio_sugerido;
-            }
-            if(data.detalle_sugerido !== undefined) {
+            inputMonto.readOnly = false;
+            inputMonto.value = '';
+            inputMonto.focus();
+        } else {
+            inputMonto.readOnly = true;
+            // Consultar API
+            fetch('/finanzas/api/consultar_precio', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ socio_id: socioId, concepto: concepto }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                inputMonto.value = data.precio_sugerido;
                 document.getElementById('inputDetalle').value = data.detalle_sugerido;
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert('No se pudo consultar el precio automáticamente.');
-        });
+                calcularTotal(); // <--- Recalcular total apenas llegue el precio
+            });
+        }
     });
+    
+    // Escuchar cambios en Monto Base (por si es producto manual)
+    inputMonto.addEventListener('input', calcularTotal);
 </script>
 {% endblock %}

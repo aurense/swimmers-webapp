@@ -20,14 +20,19 @@
         <tbody>
             {% for socio in socios %}
             <tr>
-                <td><span class="font-bold">{{ socio.folio }}</span></td>
+                <td><div class="avatar">
+                    <div class="mask mask-squircle w-12 h-12">
+                        <img src="{{ url_for('static', filename='uploads/' + (socio.foto or 'default.png')) }}" 
+                             alt="Avatar" />
+                    </div>
+                </div><span class="font-bold">{{ socio.folio }}</span></td>
                 <td>
                     <a href="{{ url_for('socios.perfil', id=socio.id) }}" class="link link-hover font-bold">
                         {{ socio.nombre_completo }}
                     </a>
                 </td>
                 <td>
-                    <div class="badge badge-info">{{ socio.nivel }}</div>
+                    <div class="badge badge-info">{{ socio.nivel.nombre }}</div>
                 </td>
                 <td>{{ socio.membresia.nombre }}</td>
                 <td class="space-x-2">

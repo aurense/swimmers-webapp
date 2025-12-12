@@ -6,8 +6,20 @@
         <div class="card-body">
             <h2 class="card-title mb-4">{{ titulo if titulo else "Registrar Nuevo Socio" }}</h2>
 
-            <form method="POST" class="space-y-4">
+            <form method="POST" class="space-y-4" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
+
+                <!-- Campo Foto -->
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Fotografía</span></label>
+                    {{ form.foto(class="file-input file-input-bordered file-input-primary w-full") }}
+                </div>
+
+                <!-- Campo Fecha Nacimiento -->
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Fecha de Nacimiento</span></label>
+                    {{ form.fecha_nacimiento(class="input input-bordered w-full", type="date") }}
+                </div>
 
                 <div class="form-control w-full">
                     <label class="label">

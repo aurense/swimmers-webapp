@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import login  
@@ -16,18 +16,22 @@ class Membresia(db.Model):
 class Tarifa(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     membresia_id = db.Column(db.Integer, db.ForeignKey('membresia.id'), nullable=False)
-    nivel = db.Column(db.String(20), nullable=False)  # Bebés, Niños, Adultos
+    nivel_id = db.Column(db.Integer, db.ForeignKey('nivel.id'), nullable=False)
     costo_mensual = db.Column(db.Float, nullable=False)
     costo_anualidad = db.Column(db.Float, nullable=False)
     costo_inscripcion = db.Column(db.Float, nullable=False)
+    
+    nivel = db.relationship('Nivel', backref='tarifas')
 
 class Horario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dia_semana = db.Column(db.String(15), nullable=False) # Lunes, Martes...
     hora_inicio = db.Column(db.Time, nullable=False)
     hora_fin = db.Column(db.Time, nullable=False)
-    nivel = db.Column(db.String(20), nullable=False)
+    nivel_id = db.Column(db.Integer, db.ForeignKey('nivel.id'), nullable=False)
     capacidad_maxima = db.Column(db.Integer, default=10)
+    
+    nivel = db.relationship('Nivel', backref='horarios')
     
     # Relación dinámica para filtros
     inscripciones = db.relationship('Inscripcion', backref='horario', lazy='dynamic')
@@ -47,10 +51,23 @@ class Socio(db.Model):
     foto = db.Column(db.String(200)) # URL o path del archivo
     telefono = db.Column(db.String(20))
     email = db.Column(db.String(120))
-    nivel = db.Column(db.String(20), nullable=False)
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
     
+    fecha_nacimiento = db.Column(db.Date, nullable=True)
+    foto = db.Column(db.String(120), nullable=False, default='default.png') # Guardaremos solo el nombre del archivo
+
+    @property
+    def edad(self):
+        """Calcula la edad basada en la fecha de nacimiento"""
+        if not self.fecha_nacimiento:
+            return 0
+        today = date.today()
+        return today.year - self.fecha_nacimiento.year - ((today.month, today.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day))
+
     membresia_id = db.Column(db.Integer, db.ForeignKey('membresia.id'))
+    nivel_id = db.Column(db.Integer, db.ForeignKey('nivel.id'), nullable=False)
+
+    nivel = db.relationship('Nivel', backref='socios')
     
     # Relaciones
     inscripciones = db.relationship('Inscripcion', backref='socio', lazy='dynamic')

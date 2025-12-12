@@ -22,7 +22,7 @@
             {% for t in tarifas %}
             <tr>
                 <td>{{ t.membresia.nombre }}</td>
-                <td>{{ t.nivel }}</td>
+                <td>{{ t.nivel.nombre }}</td>
                 <td>${{ t.costo_mensual }}</td>
                 <td>${{ t.costo_anualidad }}</td>
                 <td>${{ t.costo_inscripcion }}</td>

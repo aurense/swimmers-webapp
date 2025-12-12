@@ -4,7 +4,7 @@
 <div class="flex justify-between items-center mb-4">
     <div>
         <h1 class="text-xl font-bold">Clase: {{ horario.hora_inicio.strftime('%H:%M') }}</h1>
-        <span class="badge badge-ghost">{{ horario.nivel }}</span>
+        <span class="badge badge-ghost">{{ horario.nivel.nombre }}</span>
     </div>
     <div class="flex justify-end mb-3">
         <button onclick="marcarTodos()" class="btn btn-primary btn-sm">
@@ -28,8 +28,12 @@
                         <!-- Avatar (Borde Rojo si debe) -->
                         <div class="rounded-circle d-flex justify-content-center align-items-center me-3 border {{ 'border-error border-4' if not es_activo else 'bg-light' }}" 
                              style="width: 45px; height: 45px;">
-                             {{ socio.nombre_completo[:2].upper() }}
+                             <div class="mask mask-squircle w-12 h-12">
+                                <img src="{{ url_for('static', filename='uploads/' + (socio.foto or 'default.png')) }}" 
+                                     alt="Avatar" />
+                            </div>
                         </div>
+                        
                         <div>
                             <h6 class="m-0 font-bold {{ 'text-error' if not es_activo else '' }}">
                                 {{ socio.nombre_completo }}
@@ -108,7 +112,10 @@ async function marcar(elemento, socioId, horarioId, estado) {
     try {
         const response = await fetch('/asistencia/api/marcar', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
             body: JSON.stringify({ 
                 socio_id: socioId, 
                 horario_id: horarioId,

@@ -26,8 +26,8 @@
                     </div>
 
                     <div class="form-control w-full mb-2">
-                        <label class="label">{{ form.nivel.label }}</label>
-                        {{ form.nivel(class="select select-bordered") }}
+                        <label class="label">{{ form.nivel_id.label }}</label>
+                        {{ form.nivel_id(class="select select-bordered") }}
                     </div>
 
                     <div class="form-control w-full mb-4">
@@ -60,7 +60,7 @@
                     <tr>
                         <td>{{ h.dia_semana }}</td>
                         <td>{{ h.hora_inicio.strftime('%H:%M') }} - {{ h.hora_fin.strftime('%H:%M') }}</td>
-                        <td><div class="badge badge-neutral">{{ h.nivel }}</div></td>
+                        <td><div class="badge badge-neutral">{{ h.nivel.nombre }}</div></td>
                         <td>{{ h.capacidad_maxima }}</td>
                         <td>
                             <a href="{{ url_for('admin.borrar_horario', id=h.id) }}" 

@@ -8,13 +8,19 @@
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body items-center text-center">
                 <!-- Avatar -->
-                <div class="avatar placeholder mb-4">
-                    <div class="bg-primary text-neutral-content rounded-full w-24">
-                        <span class="text-3xl">{{ socio.nombre_completo[:2].upper() }}</span>
+                <div class="avatar mb-3 mx-auto">
+                    <div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                        <!-- Usamos url_for static -->
+                        <img src="{{ url_for('static', filename='uploads/' + (socio.foto or 'default.png')) }}" 
+                            alt="{{ socio.nombre_completo }}" />
                     </div>
                 </div>
                 
                 <h2 class="card-title">{{ socio.nombre_completo }}</h2>
+                <p class="text-sm text-gray-500">
+                    {{ socio.edad }} Años 
+                    ({{ socio.fecha_nacimiento.strftime('%d/%m/%Y') if socio.fecha_nacimiento else 'N/A' }})
+                </p>
                 <p class="text-neutral-500">{{ socio.folio }}</p>
                 
                 <!-- Badge de Estatus -->
@@ -23,7 +29,7 @@
                 <div class="divider"></div>
                 
                 <div class="text-left space-y-2 w-full">
-                    <p><strong>Nivel:</strong> <span class="badge badge-info">{{ socio.nivel }}</span></p>
+                    <p><strong>Nivel:</strong> <span class="badge badge-info">{{ socio.nivel.nombre }}</span></p>
                     <p><strong>Plan:</strong> {{ socio.membresia.nombre }}</p>
                     <p><strong>Teléfono:</strong> {{ socio.telefono or 'No registrado' }}</p>
                     <p><strong>Email:</strong> {{ socio.email or 'No registrado' }}</p>

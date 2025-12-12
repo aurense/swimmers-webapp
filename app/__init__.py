@@ -1,7 +1,8 @@
 from flask import Flask, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import LoginManager 
+from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
 from config import Config
 
@@ -9,6 +10,7 @@ from config import Config
 db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager() # <--- INICIALIZAR
+csrf = CSRFProtect()
 login.login_view = 'auth.login' # <--- Redirigir aquí si no está logueado
 login.login_message = "Por favor inicia sesión para acceder a esta página."
 
@@ -20,6 +22,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)
+    csrf.init_app(app)
 
     # Importar modelos para que Flask sepa que existen
     from app import models

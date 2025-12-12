@@ -5,7 +5,7 @@
     <div>
         <h2 class="text-2xl font-bold">Inscribir a: <span class="text-primary">{{ socio.nombre_completo }}</span></h2>
         <p class="text-base-content/70">
-            Nivel: <span class="font-semibold">{{ socio.nivel }}</span> |
+            Nivel: <span class="font-semibold">{{ socio.nivel.nombre }}</span> |
             Plan: <span class="font-semibold">{{ socio.membresia.nombre }}</span>
         </p>
     </div>
@@ -14,7 +14,6 @@
     </div>
 </div>
 
-<!-- SECCIÓN DE CLASES ACTUALES -->
 <div class="card mb-6 border border-warning bg-warning/10">
     <div class="card-body p-4">
         <h3 class="card-title text-warning-content font-bold">Clases Activas ({{ clases_actuales|length }}/{{ socio.membresia.clases_por_semana }})</h3>
@@ -42,13 +41,10 @@
     </div>
 </div>
 
-
-<!-- CALENDARIO DE SELECCIÓN -->
 <div class="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto p-4 bg-base-300 rounded-box">
 
     {% for dia, horarios in agenda.items() %}
         {% if horarios %}
-
             {% set ns = namespace(dia_ocupado=false) %}
             {% for insc in clases_actuales %}
                 {% if insc.horario.dia_semana == dia %}
@@ -56,7 +52,6 @@
                 {% endif %}
             {% endfor %}
 
-            <!-- Card for each day -->
             <div class="card w-72 bg-base-100 shadow-xl {% if ns.dia_ocupado %}bg-base-200/50 opacity-70{% endif %}">
                 <div class="card-body p-4">
                     <h2 class="card-title justify-center p-2 rounded-lg -mt-6 mb-4 shadow-lg {% if ns.dia_ocupado %}bg-neutral-focus text-neutral-content{% else %}bg-base-200{% endif %}">
@@ -80,10 +75,7 @@
                                         {% if ns.dia_ocupado %}
                                             <button disabled class="btn btn-xs btn-outline btn-disabled">Día ocupado</button>
                                         {% elif disponibles > 0 and (clases_actuales|length) < socio.membresia.clases_por_semana %}
-                                            <form method="POST" action="{{ url_for('academico.inscribir', socio_id=socio.id) }}">
-                                                <input type="hidden" name="horario_id" value="{{ h.id }}">
-                                                <button type="submit" class="btn btn-xs btn-primary">Seleccionar</button>
-                                            </form>
+                                            <button class="btn btn-xs btn-primary btn-inscribir" data-horario-id="{{ h.id }}" data-socio-id="{{ socio.id }}">Seleccionar</button>
                                         {% elif (clases_actuales|length) >= socio.membresia.clases_por_semana %}
                                             <button disabled class="btn btn-xs btn-outline btn-disabled">Límite alcanzado</button>
                                         {% else %}
@@ -99,4 +91,70 @@
         {% endif %}
     {% endfor %}
 </div>
+
+<div id="toast-container" class="toast toast-top toast-center"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const buttons = document.querySelectorAll('.btn-inscribir');
+        buttons.forEach(button => {
+            button.addEventListener('click', function () {
+                const horarioId = this.dataset.horarioId;
+                const socioId = this.dataset.socioId;
+                
+                // Deshabilitar botón para evitar doble click
+                this.disabled = true;
+                this.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
+
+                const formData = new FormData();
+                formData.append('socio_id', socioId);
+                formData.append('horario_id', horarioId);
+
+                fetch('{{ url_for("academico.inscribir_ajax") }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        // Flask-WTF CSRF protection
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showToast(data.status, data.message);
+                    if (data.status === 'success') {
+                        // Recargar la página para ver los cambios
+                        setTimeout(() => { location.reload(); }, 2000);
+                    } else {
+                        // Rehabilitar botón en caso de error
+                        this.disabled = false;
+                        this.innerHTML = 'Seleccionar';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('error', 'Ocurrió un error inesperado.');
+                    this.disabled = false;
+                    this.innerHTML = 'Seleccionar';
+                });
+            });
+        });
+    });
+
+    function showToast(status, message) {
+        const container = document.getElementById('toast-container');
+        const alertClass = status === 'success' ? 'alert-success' : 'alert-error';
+        const toast = `
+            <div class="alert ${alertClass} shadow-lg">
+                <div>
+                    <span>${message}</span>
+                </div>
+            </div>
+        `;
+        container.innerHTML = toast;
+        setTimeout(() => { container.innerHTML = ''; }, 3000);
+    }
+</script>
 {% endblock %}

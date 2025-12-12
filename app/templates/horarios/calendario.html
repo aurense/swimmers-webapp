@@ -26,7 +26,7 @@
                                     <h3 class="font-bold text-lg">
                                         {{ h.hora_inicio.strftime('%H:%M') }} - {{ h.hora_fin.strftime('%H:%M') }}
                                     </h3>
-                                    {% if h.nivel == 'Niños' %}
+                                    {% if h.nivel.nombre == 'Niños' %}
                                         <div class="badge badge-info">Niños</div>
                                     {% else %}
                                         <div class="badge badge-neutral">Adultos</div>

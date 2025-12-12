@@ -14,26 +14,28 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 def dashboard():
     return render_template('admin/dashboard.html')
 
+@admin_bp.route('/asistencia_recepcion')
+@login_required
+@admin_required
+def asistencia_recepcion():
+    return render_template('asistencia/recepcion.html')
+
 # --- GESTIÓN DE HORARIOS ---
 @admin_bp.route('/horarios', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def horarios():
-    # Lista de horarios existentes
     lista_horarios = Horario.query.order_by(Horario.dia_semana, Horario.hora_inicio).all()
-    
-    # Formulario para crear nuevo
     form = HorarioForm()
-    # --- CARGA DINÁMICA DE NIVELES ---
     niveles_db = Nivel.query.order_by(Nivel.orden).all()
-    form.nivel.choices = [(n.nombre, n.nombre) for n in niveles_db]
-    # ---------------------------------
+    form.nivel_id.choices = [(n.id, n.nombre) for n in niveles_db]
+    
     if form.validate_on_submit():
         h = Horario(
             dia_semana=form.dia_semana.data,
             hora_inicio=form.hora_inicio.data,
             hora_fin=form.hora_fin.data,
-            nivel=form.nivel.data,
+            nivel_id=form.nivel_id.data,
             capacidad_maxima=form.capacidad_maxima.data
         )
         db.session.add(h)
@@ -49,7 +51,6 @@ def horarios():
 def borrar_horario(id):
     h = Horario.query.get_or_404(id)
     
-    # Validación de Seguridad: No borrar si hay alumnos
     inscritos = h.inscripciones.filter_by(activo=True).count()
     if inscritos > 0:
         flash(f'ERROR: No se puede borrar esta clase. Tiene {inscritos} alumnos inscritos.', 'danger')
@@ -65,7 +66,6 @@ def borrar_horario(id):
 @login_required
 @admin_required
 def tarifas():
-    # Mostrar todas las tarifas
     lista_tarifas = Tarifa.query.all()
     return render_template('admin/tarifas_lista.html', tarifas=lista_tarifas)
 
@@ -74,17 +74,10 @@ def tarifas():
 @admin_required
 def editar_tarifa(id):
     tarifa = Tarifa.query.get_or_404(id)
-    form = TarifaForm(obj=tarifa) # Pre-llenar datos
+    form = TarifaForm(obj=tarifa)
 
-    # --- CARGA DINÁMICA DE NIVELES ---
-    niveles_db = Nivel.query.order_by(Nivel.orden).all()
-    form.nivel.choices = [(n.nombre, n.nombre) for n in niveles_db]
-    # ---------------------------------
-
-    form.membresia_id.choices = [(m.id, m.nombre) for m in Membresia.query.all()]
-    
     if form.validate_on_submit():
-        form.populate_obj(tarifa) # Guardar cambios
+        form.populate_obj(tarifa)
         db.session.commit()
         flash('Precios actualizados.', 'success')
         return redirect(url_for('admin.tarifas'))
@@ -96,30 +89,23 @@ def editar_tarifa(id):
 @admin_required
 def nueva_tarifa():
     form = TarifaForm()
-
-    # --- CARGA DINÁMICA DE NIVELES ---
     niveles_db = Nivel.query.order_by(Nivel.orden).all()
-    form.nivel.choices = [(n.nombre, n.nombre) for n in niveles_db]
-    # ---------------------------------
-    
-    # Cargar las membresías en el select dinámicamente
+    form.nivel_id.choices = [(n.id, n.nombre) for n in niveles_db]
     form.membresia_id.choices = [(m.id, m.nombre) for m in Membresia.query.all()]
     
     if form.validate_on_submit():
-        # 1. VALIDACIÓN DE DUPLICADOS
-        # Verificar si ya existe una tarifa para esa Membresía + Nivel
         existe = Tarifa.query.filter_by(
             membresia_id=form.membresia_id.data,
-            nivel=form.nivel.data
+            nivel_id=form.nivel_id.data
         ).first()
         
         if existe:
-            flash(f'Error: Ya existe una tarifa para {form.nivel.data} en ese plan.', 'danger')
+            nivel_obj = Nivel.query.get(form.nivel_id.data)
+            flash(f'Error: Ya existe una tarifa para {nivel_obj.nombre} en ese plan.', 'danger')
         else:
-            # 2. GUARDAR
             nueva = Tarifa(
                 membresia_id=form.membresia_id.data,
-                nivel=form.nivel.data,
+                nivel_id=form.nivel_id.data,
                 costo_mensual=form.costo_mensual.data,
                 costo_anualidad=form.costo_anualidad.data,
                 costo_inscripcion=form.costo_inscripcion.data
@@ -199,31 +185,12 @@ def nuevo_nivel():
 @admin_required
 def editar_nivel(id):
     nivel_obj = Nivel.query.get_or_404(id)
-    nombre_original = nivel_obj.nombre # Guardamos el nombre viejo
-    
     form = NivelForm(obj=nivel_obj)
     
     if form.validate_on_submit():
-        nuevo_nombre = form.nombre.data
-        
-        # 1. Actualizar el registro del Nivel
         form.populate_obj(nivel_obj)
-        
-        # 2. ACTUALIZACIÓN EN CASCADA (Mágico ✨)
-        # Si el nombre cambió (ej. de "Niños" a "Infantil"), debemos actualizar
-        # a todos los socios, horarios y tarifas que decían "Niños".
-        if nombre_original != nuevo_nombre:
-            from app.models import Socio, Horario, Tarifa
-            
-            # Actualizar Socios
-            Socio.query.filter_by(nivel=nombre_original).update({Socio.nivel: nuevo_nombre})
-            # Actualizar Horarios
-            Horario.query.filter_by(nivel=nombre_original).update({Horario.nivel: nuevo_nombre})
-            # Actualizar Tarifas
-            Tarifa.query.filter_by(nivel=nombre_original).update({Tarifa.nivel: nuevo_nombre})
-            
         db.session.commit()
-        flash(f'Nivel actualizado. Se renombraron las referencias de "{nombre_original}" a "{nuevo_nombre}".', 'success')
+        flash(f'Nivel "{nivel_obj.nombre}" actualizado correctamente.', 'success')
         return redirect(url_for('admin.niveles'))
         
     return render_template('admin/nivel_form.html', form=form, titulo="Editar Nivel")
