@@ -6,17 +6,27 @@ from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
 from config import Config
 
+# Configuraciones
+class TestConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False
+
 # Inicializar extensiones
 db = SQLAlchemy()
 migrate = Migrate()
-login = LoginManager() # <--- INICIALIZAR
+login = LoginManager() 
 csrf = CSRFProtect()
-login.login_view = 'auth.login' # <--- Redirigir aquí si no está logueado
+login.login_view = 'auth.login'
 login.login_message = "Por favor inicia sesión para acceder a esta página."
 
-def create_app(config_class=Config):
+def create_app(config_name='default'):
     app = Flask(__name__)
-    app.config.from_object(config_class)
+
+    if config_name == 'testing':
+        app.config.from_object(TestConfig)
+    else:
+        app.config.from_object(Config)
 
     # Conectar extensiones a la app
     db.init_app(app)
@@ -26,6 +36,7 @@ def create_app(config_class=Config):
 
     # Importar modelos para que Flask sepa que existen
     from app import models
+    from app.models import User
 
     # Registrar Blueprints
     from app.routes.socios import socios_bp
@@ -60,10 +71,15 @@ def create_app(config_class=Config):
 
     @app.context_processor
     def inject_context():
-        """
-        Esta función hace que la variable 'current_year' 
-        esté disponible en TODOS los archivos HTML.
-        """
         return dict(current_year=datetime.now().year)
+
+    with app.app_context():
+        db.create_all()
+        if config_name == 'testing':
+            if not User.query.filter_by(username='testadmin').first():
+                admin = User(username='testadmin', role='admin')
+                admin.set_password('test')
+                db.session.add(admin)
+                db.session.commit()
 
     return app

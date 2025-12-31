@@ -1,6 +1,8 @@
-# Dev environment
 pip
 autopep8
-
-# App
-flask
+Flask>=2.0
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-Login
+Flask-WTF
+gunicorn

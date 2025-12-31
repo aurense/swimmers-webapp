@@ -8,7 +8,7 @@
             <span>{{ horario.dia_semana }} | {{ horario.hora_inicio.strftime('%H:%M') }} - {{ horario.hora_fin.strftime('%H:%M') }}</span>
         </div>
         <div class="mt-2 space-x-2">
-            <div class="badge badge-primary">{{ horario.nivel }}</div>
+            <div class="badge badge-primary">{{ horario.nivel.nombre }}</div>
             <div class="badge badge-secondary">{{ alumnos|length }} / {{ horario.capacidad_maxima }} Alumnos</div>
         </div>
     </div>

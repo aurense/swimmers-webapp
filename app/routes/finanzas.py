@@ -6,6 +6,11 @@ from flask_login import login_required
 
 finanzas_bp = Blueprint('finanzas', __name__, url_prefix='/finanzas')
 
+@finanzas_bp.route('/cobro-rapido')
+@login_required
+def cobro_rapido():
+    return render_template('finanzas/buscar_socio.html')
+
 # --- API INTERNA (Para que el JavaScript consulte precios) ---
 @finanzas_bp.route('/api/consultar_precio', methods=['POST'])
 @login_required

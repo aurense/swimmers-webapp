@@ -29,8 +29,8 @@ def lista():
 @login_required
 def crear():
     form = SocioForm()
-    niveles_db = Nivel.query.order_by(Nivel.orden).all()
-    form.nivel.choices = [(n.nombre, n.nombre) for n in niveles_db]
+    # Popula los choices para los SelectFields
+    form.nivel_id.choices = [(n.id, n.nombre) for n in Nivel.query.order_by(Nivel.orden).all()]
     form.membresia_id.choices = [(m.id, m.nombre) for m in Membresia.query.all()]
 
     if form.validate_on_submit():
@@ -38,21 +38,17 @@ def crear():
         if form.foto.data:
             nombre_archivo_foto = guardar_foto(form.foto.data)
 
+        # Generar Folio
         ultimo_socio = Socio.query.order_by(Socio.id.desc()).first()
         nuevo_id = ultimo_socio.id + 1 if ultimo_socio else 1
         folio_generado = f"SW{nuevo_id:04d}"
-
-        nivel_obj = Nivel.query.filter_by(nombre=form.nivel.data).first()
-        if not nivel_obj:
-            flash(f"Nivel '{form.nivel.data}' no encontrado.", "danger")
-            return render_template('socios/crear.html', form=form)
 
         nuevo_socio = Socio(
             folio=folio_generado,
             nombre_completo=form.nombre_completo.data,
             email=form.email.data,
             telefono=form.telefono.data,
-            nivel=nivel_obj, 
+            nivel_id=form.nivel_id.data,  # Usar el ID directamente
             membresia_id=form.membresia_id.data,
             fecha_nacimiento=form.fecha_nacimiento.data,
             foto=nombre_archivo_foto
@@ -65,31 +61,25 @@ def crear():
             return redirect(url_for('socios.lista'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error al guardar: {str(e)}', 'danger')
+            flash(f'Error al guardar el socio: {str(e)}', 'danger')
 
-    return render_template('socios/crear.html', form=form)
+    return render_template('socios/crear.html', form=form, titulo="Registrar Nuevo Socio")
 
 @socios_bp.route('/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar(id):
     socio = Socio.query.get_or_404(id)
     form = SocioForm(obj=socio)
+    
+    # Siempre popula los choices
+    form.nivel_id.choices = [(n.id, n.nombre) for n in Nivel.query.order_by(Nivel.orden).all()]
     form.membresia_id.choices = [(m.id, m.nombre) for m in Membresia.query.all()]
-    niveles_db = Nivel.query.order_by(Nivel.orden).all()
-    form.nivel.choices = [(n.nombre, n.nombre) for n in niveles_db]
 
     if form.validate_on_submit():
         socio.nombre_completo = form.nombre_completo.data
         socio.email = form.email.data
         socio.telefono = form.telefono.data
-
-        nivel_obj = Nivel.query.filter_by(nombre=form.nivel.data).first()
-        if nivel_obj:
-            socio.nivel = nivel_obj
-        else:
-            flash(f"Nivel '{form.nivel.data}' no encontrado.", "danger")
-            return redirect(url_for('socios.editar', id=id))
-
+        socio.nivel_id = form.nivel_id.data  # Actualizar con el ID
         socio.membresia_id = form.membresia_id.data
         socio.fecha_nacimiento = form.fecha_nacimiento.data
 
@@ -97,13 +87,19 @@ def editar(id):
             nombre_archivo = guardar_foto(form.foto.data)
             socio.foto = nombre_archivo
 
-        db.session.commit()
-        flash('Información del socio actualizada correctamente.', 'success')
-        return redirect(url_for('socios.lista'))
-    elif request.method == 'GET':
-        if socio.nivel:
-            form.nivel.data = socio.nivel.nombre
+        try:
+            db.session.commit()
+            flash('Información del socio actualizada correctamente.', 'success')
+            return redirect(url_for('socios.lista'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al actualizar el socio: {str(e)}', 'danger')
 
+    elif request.method == 'GET':
+        # Pre-seleccionar los valores correctos (IDs)
+        form.nivel_id.data = socio.nivel_id
+        form.membresia_id.data = socio.membresia_id
+    
     return render_template('socios/crear.html', form=form, titulo="Editar Socio")
 
 @socios_bp.route('/perfil/<int:id>')
