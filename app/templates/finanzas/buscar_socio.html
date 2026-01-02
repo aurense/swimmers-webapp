@@ -1,60 +1,67 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="max-w-xl mx-auto">
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
-            <h2 class="card-title mb-4">Cobro Rápido: Buscar Socio</h2>
+            <h2 class="card-title">🔎 Cobro Rápido</h2>
+            <p>Busca al socio por nombre, apellido o número de socio para registrar un nuevo pago.</p>
             
-            <!-- Barra de Búsqueda con Alpine.js -->
-            <div x-data="{ query: '' }" class="mb-4">
-                <input type="text" 
-                       x-model="query" 
-                       @input.debounce.300ms="search($event.target.value)"
-                       placeholder="Buscar por Nombre o Folio..."
-                       class="input input-bordered w-full">
-                
-                <!-- Contenedor de Resultados -->
-                <div id="search-results" class="mt-2"></div>
+            <div class="form-control w-full mt-4">
+                <input type="text" id="searchInput" placeholder="Escribe para buscar..." class="input input-bordered w-full" />
             </div>
 
-            <div class="text-center text-gray-500">
-                <p>Escribe al menos 3 caracteres para iniciar la búsqueda.</p>
-            </div>
+            <div id="resultsContainer" class="mt-4 space-y-2"></div>
+
         </div>
     </div>
 </div>
 
 <script>
-function search(query) {
-    if (query.length < 3) {
-        document.getElementById('search-results').innerHTML = '';
-        return;
-    }
+    const searchInput = document.getElementById('searchInput');
+    const resultsContainer = document.getElementById('resultsContainer');
+    // El token CSRF es necesario para las peticiones POST en Flask
+    const csrfToken = "{{ csrf_token() }}"; 
 
-    fetch(`/socios/api/buscar?q=${query}`)
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value;
+
+        if (searchTerm.length < 2) {
+            resultsContainer.innerHTML = '';
+            return;
+        }
+
+        fetch('/finanzas/api/buscar_socio', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken 
+            },
+            body: JSON.stringify({ search_term: searchTerm })
+        })
         .then(response => response.json())
         .then(data => {
-            let resultsHtml = '<div class="list-group">';
+            resultsContainer.innerHTML = ''; // Limpiar resultados anteriores
             if (data.length > 0) {
+                const list = document.createElement('ul');
+                list.className = 'menu bg-base-200 w-full rounded-box';
                 data.forEach(socio => {
-                    resultsHtml += `
-                        <a href="/finanzas/cobrar/${socio.id}" class="list-group-item list-group-item-action flex items-center p-2 hover:bg-gray-100 rounded-lg">
-                            <img src="/static/uploads/${socio.foto}" class="w-10 h-10 rounded-full mr-3">
-                            <div>
-                                <strong>${socio.nombre}</strong> (${socio.folio})
-                                <span class="badge ${socio.es_activo ? 'badge-success' : 'badge-error'} ml-2">${socio.msg_estatus}</span>
-                            </div>
-                        </a>
-                    `;
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = `/finanzas/cobrar/${socio.id}`;
+                    link.textContent = socio.nombre_completo;
+                    listItem.appendChild(link);
+                    list.appendChild(listItem);
                 });
+                resultsContainer.appendChild(list);
             } else {
-                resultsHtml += '<p class="text-center p-4">No se encontraron socios.</p>';
+                resultsContainer.innerHTML = '<p class="text-center text-gray-500">No se encontraron socios.</p>';
             }
-            resultsHtml += '</div>';
-            document.getElementById('search-results').innerHTML = resultsHtml;
         })
-        .catch(error => console.error('Error en la búsqueda:', error));
-}
+        .catch(error => {
+            console.error('Error en la búsqueda:', error);
+            resultsContainer.innerHTML = '<p class="text-center text-red-500">Error al buscar.</p>';
+        });
+    });
 </script>
 {% endblock %}

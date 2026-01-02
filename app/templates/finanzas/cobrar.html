@@ -93,6 +93,7 @@
     const inputMonto = document.getElementById('inputMonto');
     const inputDesc = document.getElementById('inputDescuento');
     const inputTotal = document.getElementById('inputTotal');
+    const csrfToken = document.querySelector('input[name="csrf_token"]').value;
 
     // Función para recalcular
     function calcularTotal() {
@@ -122,7 +123,10 @@
             // Consultar API
             fetch('/finanzas/api/consultar_precio', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
                 body: JSON.stringify({ socio_id: socioId, concepto: concepto }),
             })
             .then(response => response.json())
