@@ -4,6 +4,7 @@ from app import db
 from app.models import Horario, Tarifa, User, Membresia, Nivel
 from app.forms import HorarioForm, TarifaForm, MembresiaForm, NivelForm
 from app.decorators import admin_required
+from collections import defaultdict
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -65,9 +66,14 @@ def borrar_horario(id):
 @admin_bp.route('/tarifas')
 @login_required
 @admin_required
-def tarifas():
-    lista_tarifas = Tarifa.query.all()
-    return render_template('admin/tarifas_lista.html', tarifas=lista_tarifas)
+def lista_tarifas():
+    tarifas = Tarifa.query.options(db.joinedload(Tarifa.membresia), db.joinedload(Tarifa.nivel)).order_by(Tarifa.membresia_id, Tarifa.nivel_id).all()
+    
+    tarifas_por_membresia = defaultdict(list)
+    for t in tarifas:
+        tarifas_por_membresia[t.membresia].append(t)
+        
+    return render_template('admin/tarifas_lista.html', tarifas_por_membresia=tarifas_por_membresia)
 
 @admin_bp.route('/tarifas/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -75,12 +81,24 @@ def tarifas():
 def editar_tarifa(id):
     tarifa = Tarifa.query.get_or_404(id)
     form = TarifaForm(obj=tarifa)
+    
+    # Opción para hacerlo general
+    if tarifa.nivel_id is None:
+        form.nivel_id.choices = [(0, 'General (Sin Nivel)')] + [(n.id, n.nombre) for n in Nivel.query.all()]
+    else:
+        form.nivel_id.choices = [(n.id, n.nombre) for n in Nivel.query.all()]
 
     if form.validate_on_submit():
+        nivel_id = form.nivel_id.data
+        if nivel_id == 0:
+            tarifa.nivel_id = None
+        else:
+            tarifa.nivel_id = nivel_id
+            
         form.populate_obj(tarifa)
         db.session.commit()
         flash('Precios actualizados.', 'success')
-        return redirect(url_for('admin.tarifas'))
+        return redirect(url_for('admin.lista_tarifas'))
         
     return render_template('admin/tarifa_editar.html', form=form, tarifa=tarifa)
 
@@ -89,23 +107,32 @@ def editar_tarifa(id):
 @admin_required
 def nueva_tarifa():
     form = TarifaForm()
-    niveles_db = Nivel.query.order_by(Nivel.orden).all()
-    form.nivel_id.choices = [(n.id, n.nombre) for n in niveles_db]
-    form.membresia_id.choices = [(m.id, m.nombre) for m in Membresia.query.all()]
+    
+    # Llenar Selects
+    membresias = Membresia.query.order_by(Membresia.nombre).all()
+    niveles = Nivel.query.order_by(Nivel.orden).all()
+    form.membresia_id.choices = [(m.id, m.nombre) for m in membresias]
+    # Opción para tarifa general (sin nivel)
+    form.nivel_id.choices = [(0, 'General (Para todos los niveles)')] + [(n.id, n.nombre) for n in niveles]
     
     if form.validate_on_submit():
+        nivel_id_seleccionado = form.nivel_id.data
+        
+        # Convertir "0" a None para la BD
+        id_para_db = None if nivel_id_seleccionado == 0 else nivel_id_seleccionado
+
+        # Validar si ya existe la combinación
         existe = Tarifa.query.filter_by(
             membresia_id=form.membresia_id.data,
-            nivel_id=form.nivel_id.data
+            nivel_id=id_para_db
         ).first()
-        
+
         if existe:
-            nivel_obj = Nivel.query.get(form.nivel_id.data)
-            flash(f'Error: Ya existe una tarifa para {nivel_obj.nombre} en ese plan.', 'danger')
+            flash('Error: Ya existe una tarifa para esa combinación de Membresía y Nivel.', 'danger')
         else:
             nueva = Tarifa(
                 membresia_id=form.membresia_id.data,
-                nivel_id=form.nivel_id.data,
+                nivel_id=id_para_db,
                 costo_mensual=form.costo_mensual.data,
                 costo_anualidad=form.costo_anualidad.data,
                 costo_inscripcion=form.costo_inscripcion.data
@@ -113,7 +140,7 @@ def nueva_tarifa():
             db.session.add(nueva)
             db.session.commit()
             flash('Nueva tarifa registrada correctamente.', 'success')
-            return redirect(url_for('admin.tarifas'))
+            return redirect(url_for('admin.lista_tarifas'))
             
     return render_template('admin/tarifa_crear.html', form=form)
 

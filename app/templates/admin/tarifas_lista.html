@@ -1,40 +1,54 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-4">
-    <h2 class="text-2xl font-bold">Matriz de Precios</h2>
-    <a href="{{ url_for('admin.nueva_tarifa') }}" class="btn btn-primary">
-        + Nueva Tarifa
-    </a>
-</div>
-<div class="overflow-x-auto">
-    <table class="table table-zebra w-full">
-        <thead>
-            <tr>
-                <th>Membresía</th>
-                <th>Nivel</th>
-                <th>Mensualidad</th>
-                <th>Anualidad</th>
-                <th>Inscripción</th>
-                <th>Editar</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for t in tarifas %}
-            <tr>
-                <td>{{ t.membresia.nombre }}</td>
-                <td>{{ t.nivel.nombre }}</td>
-                <td>${{ t.costo_mensual }}</td>
-                <td>${{ t.costo_anualidad }}</td>
-                <td>${{ t.costo_inscripcion }}</td>
-                <td>
-                    <a href="{{ url_for('admin.editar_tarifa', id=t.id) }}" class="btn btn-sm btn-outline btn-primary">✏️</a>
-                </td>
-            </tr>
+<div class="max-w-6xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="flex justify-between items-center -m-8 mb-4 p-4 bg-primary text-primary-content">
+                <h2 class="card-title">Tarifas de Precios</h2>
+                <a href="{{ url_for('admin.nueva_tarifa') }}" class="btn btn-secondary">+ Nueva Tarifa</a>
+            </div>
+
+            {% for membresia, tarifas_agrupadas in tarifas_por_membresia.items() %}
+            <div class="mb-8 p-4 border border-base-300 rounded-lg">
+                <h3 class="text-xl font-bold mb-4 text-accent">{{ membresia.nombre }}</h3>
+
+                <div class="overflow-x-auto">
+                    <table class="table w-full table-zebra">
+                        <thead>
+                            <tr>
+                                <th>Nivel</th>
+                                <th class="text-right">Inscripción</th>
+                                <th class="text-right">Mensualidad</th>
+                                <th class="text-right">Anualidad</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tarifa in tarifas_agrupadas %}
+                            <tr>
+                                <td class="font-bold">
+                                    {% if tarifa.nivel %}
+                                        <span class="badge badge-info">{{ tarifa.nivel.nombre }}</span>
+                                    {% else %}
+                                        <span class="badge badge-ghost">General (Sin Nivel)</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">${{ "%.2f"|format(tarifa.costo_inscripcion) }}</td>
+                                <td class="text-right">${{ "%.2f"|format(tarifa.costo_mensual) }}</td>
+                                <td class="text-right">${{ "%.2f"|format(tarifa.costo_anualidad) }}</td>
+                                <td class="text-right">
+                                    <a href="{{ url_for('admin.editar_tarifa', id=tarifa.id) }}" class="btn btn-xs btn-outline btn-info">Editar</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             {% endfor %}
-        </tbody>
-    </table>
-</div>
-<div class="mt-4">
-    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost">Volver al Panel</a>
+
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -68,3 +68,21 @@ class NivelForm(FlaskForm):
     nombre = StringField('Nombre del Nivel', validators=[DataRequired()])
     orden = IntegerField('Orden de visualización', default=1)
     submit = SubmitField('Guardar Nivel')
+
+class CobroForm(FlaskForm):
+    concepto = SelectField('Concepto', choices=[
+        ('Mensualidad', 'Mensualidad'),
+        ('Anualidad', 'Anualidad'),
+        ('Inscripción', 'Inscripción'),
+        ('Producto', 'Producto / Otro')
+    ], validators=[DataRequired()])
+    detalle = StringField('Detalle (Ej. Mes)', validators=[DataRequired()])
+    monto = DecimalField('Monto Base ($)', places=2, validators=[DataRequired()])
+    descuento = DecimalField('Descuento ($)', places=2, default=0.0)
+    metodo_pago = SelectField('Método de Pago', choices=[
+        ('Efectivo', 'Efectivo'),
+        ('Transferencia', 'Transferencia'),
+        ('Tarjeta', 'Tarjeta')
+    ], validators=[DataRequired()])
+    factura = BooleanField('Requiere Factura')
+    submit = SubmitField('Cobrar e Imprimir Recibo')
