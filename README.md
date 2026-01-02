@@ -1,103 +1,73 @@
-# Swimmers Atlacomulco
+# Sistema de Gestión para Escuelas de Natación
 
-Aplicación web para la gestión de la escuela de natación "Swimmers Atlacomulco".
+Aplicación web interna, desarrollada con Flask, para la administración eficiente de socios, pagos y horarios en una escuela de natación.
 
-## Descripción
-
-Esta aplicación permite administrar de forma integral las operaciones de la escuela, incluyendo:
+## ✨ Características Principales
 
 *   **Gestión de Socios:**
-    *   Registro y perfil de cada socio (nadador).
-    *   Asignación de niveles y membresías.
-*   **Gestión Académica:**
-    *   Inscripción de socios a los horarios disponibles.
-*   **Gestión de Horarios:**
-    *   Creación y administración de horarios de clase, especificando días, horas, niveles y cupo.
-*   **Control de Asistencia:**
-    *   Registro de asistencia de los socios a sus clases.
-*   **Gestión Financiera:**
-    *   Registro de pagos de mensualidades y otros conceptos.
-    *   Consulta de tarifas y precios.
-*   **Administración:**
-    *   Dashboard con vista general del sistema.
-    *   Gestión de tarifas, membresías y niveles.
+    *   Registro y edición de socios, incluyendo datos personales, de contacto y fotografía.
+    *   Asignación de niveles (e.g., Bebé, Niño, Adulto) y membresías (e.g., Trimestral, Anual).
+    *   Listado completo de socios con búsqueda y filtros.
 
-## Stack Tecnológico
+*   **Módulo de Finanzas:**
+    *   **Cobro Rápido:** Interfaz optimizada para buscar socios y registrar pagos de forma ágil.
+    *   **Cálculo Automático de Precios:** El sistema sugiere montos basados en la membresía, nivel y concepto del pago (mensualidad, anualidad, etc.).
+    *   **Registro de Pagos:** Guarda un historial detallado de todas las transacciones, incluyendo descuentos y método de pago.
+    *   **Generación de Recibos:** Permite imprimir recibos de pago detallados.
 
-*   **Backend:** Flask (Python)
-*   **Base de Datos:** SQLAlchemy con SQLite (configurable a otras bases de datos).
-*   **Frontend:** Jinja2 Templates, HTML, CSS, JavaScript.
-*   **Autenticación:** Flask-Login.
-*   **Migraciones de Base de Datos:** Alembic.
+*   **Administración y Configuración:**
+    *   Gestión de tarifas, membresías y niveles a través de un panel de administración.
+    *   Sistema de autenticación para proteger el acceso a la aplicación.
 
-## Plan de Mejoras
+*   **Interfaz de Usuario Moderna:**
+    *   Construida con **Tailwind CSS** y componentes de **DaisyUI** para una experiencia de usuario limpia y responsiva.
+    *   Uso de JavaScript para funcionalidades dinámicas como la búsqueda de socios y el cálculo de precios en tiempo real.
 
-A continuación, se presenta un plan de mejoras para futuras versiones de la aplicación, enfocado en optimizar la funcionalidad y la experiencia de usuario.
+## 🚀 Tecnologías Utilizadas
 
-### 1. Refactorización a Blueprints
+*   **Backend:** Python, Flask, Flask-SQLAlchemy, Flask-Login, Flask-WTF.
+*   **Base de Datos:** SQLite (configurable para otras bases de datos como PostgreSQL).
+*   **Frontend:** HTML, Tailwind CSS, DaisyUI, JavaScript.
+*   **Entorno:** Virtualenv para la gestión de dependencias.
 
-Actualmente, todas las rutas se encuentran en un único archivo, lo que dificulta el mantenimiento y la escalabilidad.
+## 🛠️ Instalación y Uso
 
-*   **Tarea:** Organizar las rutas en Blueprints de Flask, agrupando la funcionalidad por módulos (e.g., `socios`, `finanzas`, `admin`, `asistencia`).
-*   **Beneficios:**
-    *   Código más modular y fácil de entender.
-    *   Mejora la escalabilidad del proyecto.
-    *   Facilita el trabajo en equipo.
+1.  **Clonar el repositorio:**
+    ```bash
+    git clone <URL-DEL-REPOSITORIO>
+    cd <NOMBRE-DEL-DIRECTORIO>
+    ```
 
-### 2. Implementación de Roles y Permisos
+2.  **Crear y activar un entorno virtual:**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # En Windows: venv\Scripts\activate
+    ```
 
-Mejorar el sistema de autenticación para soportar diferentes roles de usuario (e.g., Administrador, Entrenador, Recepcionista).
+3.  **Instalar las dependencias:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-*   **Tarea:**
-    *   Agregar un campo `rol` al modelo de `Usuario`.
-    *   Crear decoradores personalizados para restringir el acceso a ciertas rutas según el rol del usuario.
-*   **Beneficios:**
-    *   Mayor seguridad al limitar el acceso a funcionalidades sensibles.
-    *   Experiencia de usuario personalizada para cada tipo de rol.
+4.  **Configurar la base de datos:**
+    *   Abre el intérprete de Flask y ejecuta los siguientes comandos para crear las tablas:
+    ```bash
+    flask shell
+    >>> from app import db
+    >>> db.create_all()
+    >>> exit()
+    ```
+    *   (Opcional) Para poblar la base de datos con datos de ejemplo (tarifas, niveles, etc.), puedes crear un script o hacerlo manualmente a través del panel de administración.
 
-### 3. Dashboard Interactivo
+5.  **Ejecutar la aplicación:**
+    ```bash
+    flask run
+    ```
+    La aplicación estará disponible en `http://127.0.0.1:5000`.
 
-Mejorar el dashboard de administrador para ofrecer una visión más completa y útil del estado de la escuela.
+## 🔮 Próximos Pasos (Roadmap)
 
-*   **Tarea:**
-    *   Incorporar gráficos interactivos (e.g., usando Chart.js) para visualizar métricas clave:
-        *   Socios activos vs. inactivos.
-        *   Ingresos por mes.
-        *   Asistencia promedio por grupo.
-    *   Agregar un feed de actividad reciente.
-*   **Beneficios:**
-    *   Facilita la toma de decisiones basada en datos.
-    *   Mejora la visualización de la información.
-
-### 4. Notificaciones Automáticas
-
-Implementar un sistema de notificaciones para mantener informados a los socios y al personal.
-
-*   **Tarea:**
-    *   Enviar recordatorios de pago automáticos por correo electrónico.
-    *   Notificar a los socios sobre cambios en los horarios.
-    *   Alertar a los administradores sobre eventos importantes (e.g., cupo lleno en un horario).
-*   **Beneficios:**
-    *   Mejora la comunicación con los socios.
-    *   Automatiza tareas manuales.
-
-### 5. Portal del Socio
-
-Crear un portal donde los socios (o sus padres/tutores) puedan autogestionar su información.
-
-*   **Tarea:**
-    *   Permitir a los socios ver su historial de pagos y asistencia.
-    *   Posibilidad de actualizar su información de contacto.
-    *   Consultar los horarios disponibles y su inscripción actual.
-*   **Beneficios:**
-    *   Reduce la carga de trabajo administrativo.
-    *   Empodera a los socios y mejora su experiencia.
-
-### 6. Optimización y Pruebas
-
-*   **Tarea:**
-    *   Realizar una revisión general del código para optimizar consultas a la base de datos.
-    *   Implementar pruebas unitarias y de integración para asegurar la calidad y estabilidad de la aplicación.
-*   **Beneficios:**
-    *   Mejora el rendimiento y la fiabilidad de la aplicación.
-    *   Facilita la detección de errores antes de que lleguen a producción.
+- [ ] **Dashboard Interactivo:** Añadir gráficos para visualizar métricas clave.
+- [ ] **Autenticación por Roles:** Implementar roles (Admin, Recepcionista) para restringir accesos.
+- [ ] **Portal del Socio:** Permitir a los socios consultar su información y estado de cuenta.
+- [ ] **Notificaciones Automáticas:** Enviar recordatorios de pago por correo electrónico.
