@@ -82,24 +82,26 @@ def editar_tarifa(id):
     tarifa = Tarifa.query.get_or_404(id)
     form = TarifaForm(obj=tarifa)
     
-    # Opción para hacerlo general
-    if tarifa.nivel_id is None:
-        form.nivel_id.choices = [(0, 'General (Sin Nivel)')] + [(n.id, n.nombre) for n in Nivel.query.all()]
-    else:
-        form.nivel_id.choices = [(n.id, n.nombre) for n in Nivel.query.all()]
+    # Populate choices for dropdowns
+    form.membresia_id.choices = [(m.id, m.nombre) for m in Membresia.query.all()]
+    form.nivel_id.choices = [(0, 'General (Sin Nivel)')] + [(n.id, n.nombre) for n in Nivel.query.all()]
 
     if form.validate_on_submit():
-        nivel_id = form.nivel_id.data
-        if nivel_id == 0:
-            tarifa.nivel_id = None
-        else:
-            tarifa.nivel_id = nivel_id
-            
-        form.populate_obj(tarifa)
+        # The 'membresia_id' and 'nivel_id' are not meant to be changed on edit,
+        # so we only update the cost fields.
+        tarifa.costo_mensual = form.costo_mensual.data
+        tarifa.costo_anualidad = form.costo_anualidad.data
+        tarifa.costo_inscripcion = form.costo_inscripcion.data
+        
         db.session.commit()
         flash('Precios actualizados.', 'success')
         return redirect(url_for('admin.lista_tarifas'))
         
+    # Set the initial values for the form fields
+    form.costo_mensual.data = tarifa.costo_mensual
+    form.costo_anualidad.data = tarifa.costo_anualidad
+    form.costo_inscripcion.data = tarifa.costo_inscripcion
+    
     return render_template('admin/tarifa_editar.html', form=form, tarifa=tarifa)
 
 @admin_bp.route('/tarifas/nueva', methods=['GET', 'POST'])
@@ -204,7 +206,7 @@ def nuevo_nivel():
         db.session.add(nuevo)
         db.session.commit()
         flash('Nivel creado correctamente.', 'success')
-        return redirect(url_for('admin.niveles'))
+        return redirect(urlfor('admin.niveles'))
     return render_template('admin/nivel_form.html', form=form, titulo="Nuevo Nivel")
 
 @admin_bp.route('/niveles/editar/<int:id>', methods=['GET', 'POST'])

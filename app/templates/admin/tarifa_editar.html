@@ -1,48 +1,58 @@
 {% extends "base.html" %}
 
+{% block title %}Editar Tarifa{% endblock %}
+
 {% block content %}
-<div class="max-w-xl mx-auto">
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title bg-info text-info-content -m-8 mb-4 p-4">✏️ Editando Tarifa</h2>
-            
-            <form method="POST" class="space-y-4">
-                {{ form.hidden_tag() }}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2 class="text-center mb-4">Editar Tarifa</h2>
 
-                <div class="alert alert-info">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>
-                            Membresía: <strong>{{ tarifa.membresia.nombre }}</strong>
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="form-control w-full">
-                    {{ form.nivel_id.label(class="label") }}
-                    {{ form.nivel_id(class="select select-bordered") }}
-                </div>
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="form-control">
-                        {{ form.costo_inscripcion.label(class="label") }}
-                        {{ form.costo_inscripcion(class="input input-bordered") }}
-                    </div>
-                    <div class="form-control">
-                        {{ form.costo_mensual.label(class="label") }}
-                        {{ form.costo_mensual(class="input input-bordered") }}
-                    </div>
-                    <div class="form-control">
-                        {{ form.costo_anualidad.label(class="label") }}
-                        {{ form.costo_anualidad(class="input input-bordered") }}
-                    </div>
-                </div>
+                        <div class="mb-3">
+                            {{ form.membresia_id.label(class="form-label") }}
+                            {{ form.membresia_id(class="form-control", disabled=True) }}
+                        </div>
 
-                <div class="card-actions justify-end pt-4">
-                    <a href="{{ url_for('admin.lista_tarifas') }}" class="btn btn-ghost">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <div class="mb-3">
+                            {{ form.nivel_id.label(class="form-label") }}
+                            {{ form.nivel_id(class="form-control", disabled=True) }}
+                        </div>
+
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.costo_mensual.label(class="form-label") }}
+                                    {{ form.costo_mensual(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.costo_anualidad.label(class="form-label") }}
+                                    {{ form.costo_anualidad(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.costo_inscripcion.label(class="form-label") }}
+                                    {{ form.costo_inscripcion(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('admin.lista_tarifas') }}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
