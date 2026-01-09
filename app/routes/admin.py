@@ -202,11 +202,15 @@ def niveles():
 def nuevo_nivel():
     form = NivelForm()
     if form.validate_on_submit():
-        nuevo = Nivel(nombre=form.nombre.data, orden=form.orden.data)
-        db.session.add(nuevo)
-        db.session.commit()
-        flash('Nivel creado correctamente.', 'success')
-        return redirect(urlfor('admin.niveles'))
+        existe = Nivel.query.filter_by(nombre=form.nombre.data).first()
+        if existe:
+            flash('Error: Ya existe un nivel con ese nombre.', 'danger')
+        else:
+            nuevo = Nivel(nombre=form.nombre.data, orden=form.orden.data)
+            db.session.add(nuevo)
+            db.session.commit()
+            flash('Nivel creado correctamente.', 'success')
+            return redirect(url_for('admin.niveles'))
     return render_template('admin/nivel_form.html', form=form, titulo="Nuevo Nivel")
 
 @admin_bp.route('/niveles/editar/<int:id>', methods=['GET', 'POST'])
